@@ -1,14 +1,5 @@
-import { Button } from "@/components/ui/button";
-import { Mic } from "lucide-react";
+import SpeechToText from "@/components/SpeechToText";
 
 export default function Home() {
-  return (
-    <div>
-      <h1>LockIntern</h1>
-      <Button>
-        <Mic />
-        Click me
-      </Button>
-    </div>
-  );
+  return <SpeechToText />;
 }
