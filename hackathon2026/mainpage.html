@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Page</title>
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <button class="header-btn header-btn--user" aria-label="User profile">
+            <svg class="icon icon-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="8" r="3.5"/>
+                <path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/>
+            </svg>
+        </button>
+
+        <button class="header-btn header-btn--menu" aria-label="Open menu">
+            <svg class="icon icon-menu" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+        </button>
+    </header>
+
+    <main class="viewport" id="app-viewport">
+        <div class="flow-stage flow-stage--bubble" data-flow="bubble">
+            <button type="button" class="bubble-btn" aria-label="Continue to next step" data-next-step>
+                <span class="thought-bubble">
+                    <span class="bubble">
+                        <span class="bubble__logo">LockIntern</span>
+                    </span>
+                    <span class="thought-bubble__dot thought-bubble__dot--1" aria-hidden="true"></span>
+                    <span class="thought-bubble__dot thought-bubble__dot--2" aria-hidden="true"></span>
+                </span>
+            </button>
+        </div>
+
+        <div class="flow-stage flow-stage--split" data-flow="split" aria-hidden="true">
+            <div class="split-layout">
+                <div class="split-header">
+                    <button type="button" class="split-logo" aria-label="Back to previous step" data-back>LockIntern</button>
+                </div>
+                <div class="split-actions">
+                    <div class="action-buttons-row">
+                        <button type="button" class="action-btn action-btn--small action-btn--join">Join</button>
+                        <button type="button" class="action-btn action-btn--small action-btn--upload">
+                            <span class="action-btn__label">Upload resume</span>
+                            <input type="file" class="action-btn__file" accept=".pdf,.doc,.docx" aria-label="Upload resume file" hidden>
+                        </button>
+                    </div>
+                    <div class="action-field-wrap">
+                        <label for="job-title" class="action-field__label">Job title</label>
+                        <input type="text" id="job-title" class="action-field" placeholder="Enter your job title" autocomplete="organization-title">
+                    </div>
+                    <div class="action-field-wrap action-field-wrap--desc">
+                        <label for="job-description" class="action-field__label">Job Description</label>
+                        <textarea id="job-description" class="action-textarea" placeholder="Describe the role or paste a job description for AI prompting..." maxlength="3000" rows="4"></textarea>
+                        <span class="char-counter" aria-live="polite">0/3000</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="mainpage.js"></script>
+</body>
+</html>

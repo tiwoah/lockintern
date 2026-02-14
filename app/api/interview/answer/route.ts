@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     const jobDescription = String(form.get("jobDescription") ?? "");
     const audio = form.get("audio");
 
-    if (!question.trim()) {
+    if (!question.trim()) {       
       return NextResponse.json(
         { error: "Missing question" },
         { status: 400 },

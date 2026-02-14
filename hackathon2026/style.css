@@ -1,0 +1,435 @@
+:root {
+    --font-family: "Google Sans Flex", sans-serif;
+    --font-flex-optical: auto;
+    --font-flex-variation: "slnt" 0, "wdth" 100, "GRAD" 0, "ROND" 0;
+    --LightSkyBlue-color: #87CEFA;
+    --black-color: #000000;
+    --gray-color: #515151;
+    --white-color: #FFFFFF;
+}
+
+html {
+    height: 100%;
+    overflow: hidden;
+    font-family: var(--font-family);
+    font-optical-sizing: var(--font-flex-optical);
+    font-style: normal;
+    font-variation-settings: var(--font-flex-variation);
+}
+
+body {
+    font-family: var(--font-family);
+    font-optical-sizing: var(--font-flex-optical);
+    font-variation-settings: var(--font-flex-variation);
+    margin: 0;
+    height: 100%;
+    min-height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header: scaled to match central logo visual weight */
+.header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    background: var(--white-color);
+}
+
+.header-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--black-color);
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background 0.2s, color 0.2s;
+}
+
+.header-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--gray-color);
+}
+
+.icon {
+    width: 2.25rem;
+    height: 2.25rem;
+}
+
+.header-btn--user {
+    margin-right: auto;
+}
+
+.header-btn--menu {
+    margin-left: auto;
+}
+
+/* Single viewport: 100vh, no scroll. Flow 1 (bubble) and Flow 2 (split) live here */
+.viewport {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+}
+
+.flow-stage {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.flow-stage--bubble {
+    pointer-events: auto;
+}
+
+.flow-stage--split {
+    opacity: 0;
+    transition: opacity 0.25s ease 0.35s;
+}
+
+.viewport.is-split .flow-stage--bubble {
+    pointer-events: none;
+}
+
+.viewport.is-split .flow-stage--split {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Mitosis: central bubble shrinks and fades */
+.flow-stage--bubble .thought-bubble {
+    transition: transform 0.5s cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.45s ease;
+}
+
+.viewport.is-split .flow-stage--bubble .thought-bubble {
+    transform: scale(0);
+    opacity: 0;
+}
+
+/* Split flow: logo + 3 actions (Join, Upload resume, Job title) */
+.flow-stage--split {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 2rem;
+    overflow: hidden;
+}
+
+.split-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(1.75rem, 4vw, 2.5rem);
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* LockIntern text logo — clickable, goes back to bubble step */
+button.split-logo {
+    font-family: var(--font-family), sans-serif;
+    font-optical-sizing: var(--font-flex-optical);
+    font-style: normal;
+    font-variation-settings: var(--font-flex-variation);
+    font-size: clamp(2.75rem, 5.5vw, 4rem);
+    font-weight: 700;
+    color: var(--black-color);
+    letter-spacing: 0.02em;
+    margin: 0;
+    padding: 0.25rem 0.5rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 0.5rem;
+    opacity: 0;
+    transform: translateY(-0.5rem);
+    transition: opacity 0.4s ease 0.15s, transform 0.45s cubic-bezier(0.34, 1.2, 0.64, 1) 0.15s, background 0.2s, color 0.2s;
+}
+
+button.split-logo:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--gray-color);
+}
+
+button.split-logo:active {
+    transform: translateY(-0.5rem) scale(0.98);
+}
+
+.viewport.is-split button.split-logo {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.viewport.is-split button.split-logo:active {
+    transform: translateY(0) scale(0.98);
+}
+
+/* Split header: LockIntern logo as clickable back button */
+.split-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 28rem;
+}
+
+.split-logo {
+    flex: none;
+    text-align: center;
+}
+
+/* Actions: Join + Upload (small, same size), Job title, Job Description */
+.split-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: clamp(1rem, 2.5vw, 1.5rem);
+    width: 100%;
+    max-width: 28rem;
+    opacity: 0;
+    transform: translateY(0.5rem);
+    transition: opacity 0.4s ease 0.25s, transform 0.4s ease 0.25s;
+}
+
+.viewport.is-split .split-actions {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Row: Join and Upload resume — small, same size */
+.action-buttons-row {
+    display: flex;
+    flex-direction: row;
+    gap: clamp(0.75rem, 1.5vw, 1rem);
+    align-items: stretch;
+    justify-content: center;
+}
+
+.action-btn--small {
+    flex: 1;
+    min-width: 0;
+    max-width: 10rem;
+    font-size: clamp(0.85rem, 1.5vw, 1rem);
+    font-weight: 600;
+    padding: clamp(0.5rem, 1vw, 0.65rem) clamp(0.9rem, 1.5vw, 1.1rem);
+    border-radius: 1.25rem;
+}
+
+/* Shared button style: sky-blue, rounded */
+.action-btn {
+    font-family: var(--font-family), sans-serif;
+    color: var(--black-color);
+    background: #87CEEB;
+    border: none;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+    position: relative;
+    text-align: center;
+}
+
+.action-btn:not(.action-btn--small) {
+    font-size: clamp(1rem, 2vw, 1.35rem);
+    font-weight: 700;
+    padding: clamp(0.75rem, 1.5vw, 1rem) clamp(1.25rem, 2.5vw, 1.75rem);
+    border-radius: 1.75rem;
+}
+
+.action-btn:hover {
+    opacity: 0.92;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.action-btn:active {
+    transform: scale(0.98);
+}
+
+.action-btn--upload {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn__label {
+    pointer-events: none;
+}
+
+/* Job title field */
+.action-field-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.action-field__label {
+    font-family: var(--font-family), sans-serif;
+    font-size: clamp(0.9rem, 1.5vw, 1.05rem);
+    font-weight: 600;
+    color: var(--black-color);
+    padding-left: 0.25rem;
+}
+
+.action-field {
+    font-family: var(--font-family), sans-serif;
+    font-size: clamp(1rem, 1.6vw, 1.15rem);
+    color: var(--black-color);
+    background: #87CEEB;
+    border: none;
+    border-radius: 1.25rem;
+    padding: clamp(0.7rem, 1.25vw, 0.9rem) clamp(1rem, 1.75vw, 1.25rem);
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s;
+}
+
+.action-field::placeholder {
+    color: var(--gray-color);
+    opacity: 0.85;
+}
+
+.action-field:focus {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+/* Job Description: textarea for AI prompting + 0/3000 counter */
+.action-textarea {
+    font-family: var(--font-family), sans-serif;
+    font-size: clamp(0.95rem, 1.4vw, 1.1rem);
+    line-height: 1.5;
+    color: var(--black-color);
+    background: #87CEEB;
+    border: none;
+    border-radius: 1.25rem;
+    padding: clamp(0.7rem, 1.25vw, 0.9rem) clamp(1rem, 1.5vw, 1.25rem);
+    outline: none;
+    width: 100%;
+    resize: vertical;
+    min-height: 5rem;
+    max-height: 12rem;
+    box-sizing: border-box;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s;
+}
+
+.action-textarea::placeholder {
+    color: var(--gray-color);
+    opacity: 0.85;
+}
+
+.action-textarea:focus {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.action-field-wrap--desc {
+    position: relative;
+}
+
+.char-counter {
+    font-family: var(--font-family), sans-serif;
+    font-size: 0.75rem;
+    color: var(--gray-color);
+    position: absolute;
+    bottom: 0.5rem;
+    right: 0.75rem;
+    pointer-events: none;
+}
+
+/* Entire bubble is one clickable unit for transitions/animations */
+.bubble-btn {
+    display: block;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+}
+
+.bubble-btn:hover .thought-bubble {
+    filter: brightness(0.97) drop-shadow(0 8px 24px rgba(0, 0, 0, 0.08)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.05));
+}
+
+.bubble-btn:active .thought-bubble {
+    transform: scale(0.98);
+}
+
+/* Thought bubble: focal point, upscaled. Shadow scales with size */
+.thought-bubble {
+    display: inline-block;
+    position: relative;
+    transition: filter 0.2s, transform 0.15s;
+    filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.08)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.05));
+}
+
+/* Main container: wide horizontal rectangle, asymmetrical, large radius */
+.bubble {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    min-width: 22rem;
+    padding: 2.25rem 4rem;
+    background: #87CEEB;
+    border-radius: 5rem 1rem 5rem 1rem;
+    transition: filter 0.2s, transform 0.15s;
+}
+
+/* Thinking trail: proportionally larger circles */
+.thought-bubble__dot {
+    position: absolute;
+    left: 1.25rem;
+    background: #87CEEB;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.thought-bubble__dot--1 {
+    width: 2.25rem;
+    height: 2.25rem;
+    bottom: -3rem;
+    left: -2.5rem;
+}
+
+.thought-bubble__dot--2 {
+    width: 1.0rem;
+    height: 1.0rem;
+    bottom: -0.85rem;
+    left: -0.90rem;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+}
+
+/* Logo: screen focal point, bold scale — same Google Sans Flex as project */
+.bubble__logo {
+    font-family: var(--font-family), sans-serif;
+    font-optical-sizing: var(--font-flex-optical);
+    font-style: normal;
+    font-variation-settings: var(--font-flex-variation);
+    font-size: clamp(2.5rem, 5vw, 3.75rem);
+    font-weight: 700;
+    color: var(--black-color);
+    letter-spacing: 0.02em;
+    position: relative;
+    z-index: 1;
+}

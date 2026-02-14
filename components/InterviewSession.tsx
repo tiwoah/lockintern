@@ -2,10 +2,7 @@
 
 import { useRef, useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { blobToWavFile } from "@/utils/blobToWav";
 
 type Phase =
@@ -30,6 +27,7 @@ export default function InterviewSession() {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [resumeText, setResumeText] = useState("");
   const [parsingResume, setParsingResume] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
   // ── Interview state ──
   const [phase, setPhase] = useState<Phase>("setup");
@@ -105,6 +103,19 @@ export default function InterviewSession() {
       }
     } catch {
       // TTS failure is non-critical
+    }
+  }, []);
+
+  // ── Stop any playing TTS audio ──
+  const stopSpeaking = useCallback(() => {
+    const el = audioRef.current;
+    if (!el) return;
+    try {
+      el.pause();
+      el.currentTime = 0;
+      el.src = "";
+    } catch {
+      /* ignore */
     }
   }, []);
 
@@ -283,6 +294,8 @@ export default function InterviewSession() {
 
   // ── Next question / Finish ──
   function nextQuestion() {
+    stopSpeaking();
+
     const nextIdx = currentIndex + 1;
     if (nextIdx >= questions.length) {
       setPhase("done");
@@ -297,6 +310,7 @@ export default function InterviewSession() {
   }
 
   function restart() {
+    stopSpeaking();
     setPhase("setup");
     setQuestions([]);
     setCurrentIndex(0);
@@ -306,6 +320,7 @@ export default function InterviewSession() {
     setJobDescription("");
     setResumeFile(null);
     setResumeText("");
+    setShowForm(false);
     // Stop meeting timer
     if (meetingIntervalRef.current) {
       clearInterval(meetingIntervalRef.current);
@@ -341,6 +356,7 @@ export default function InterviewSession() {
 
   // ── Leave meeting ──
   function leaveMeeting() {
+    stopSpeaking();
     if (meetingIntervalRef.current) {
       clearInterval(meetingIntervalRef.current);
       meetingIntervalRef.current = null;
@@ -429,7 +445,7 @@ export default function InterviewSession() {
                     AI Interviewer
                   </span>
                   {(phase === "question" || phase === "generating") && (
-                    <span className="flex gap-[2px]">
+                    <span className="flex h-4 items-end gap-[2px]">
                       {[0, 1, 2, 3].map((i) => (
                         <span
                           key={i}
@@ -440,7 +456,7 @@ export default function InterviewSession() {
                             animationTimingFunction: "ease-in-out",
                             animationIterationCount: "infinite",
                             animationDelay: `${i * 0.15}s`,
-                            minHeight: "3px",
+                            height: "4px",
                           }}
                         />
                       ))}
@@ -449,10 +465,9 @@ export default function InterviewSession() {
                 </div>
 
                 {/* AI Avatar */}
-                <div className={`${phase === "question" || phase === "generating" ? "animate-float" : ""}`}>
-                  <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-[#7b6fe6] to-[#5b4fc6] text-4xl shadow-lg shadow-[#7b6fe6]/20 sm:h-32 sm:w-32 sm:text-5xl">
-                    🤖
-                  </div>
+                <div className={`flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-[#7b6fe6] to-[#5b4fc6] text-4xl shadow-lg shadow-[#7b6fe6]/20 sm:h-32 sm:w-32 sm:text-5xl ${
+                  phase === "question" || phase === "generating" ? "animate-float" : ""
+                }`}>
                 </div>
 
                 {/* Question text overlay */}
@@ -681,7 +696,7 @@ export default function InterviewSession() {
             {/* Leave button */}
             <button
               onClick={leaveMeeting}
-              className="teams-toolbar-btn w-auto gap-2 rounded-lg bg-red-600 px-4 text-sm font-semibold text-white hover:bg-red-700"
+              className="teams-toolbar-btn w-auto gap-2 rounded-lg bg-red-600 px-6 text-sm font-semibold text-white hover:bg-red-700"
               title="Leave interview"
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -695,232 +710,190 @@ export default function InterviewSession() {
       )}
 
       {/* ════════════════════════════════════════════
-          SETUP + DONE views (normal layout)
+          SETUP — Hackathon homepage (bubble → split)
          ════════════════════════════════════════════ */}
-      {!isMeetingView && (
-        <div className="mx-auto max-w-2xl space-y-8 px-4 py-10 sm:px-6">
-          {/* ─── HEADER ─── */}
-          <header className="text-center">
-            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
-              Lock<span className="text-primary">Intern</span>
-            </h1>
-            <p className="mt-2 text-muted-foreground">
-              Practice interviews with AI. Upload your resume, paste a job
-              description, and get tailored questions &amp; feedback.
-            </p>
+      {phase === "setup" && (
+        <div className="font-gsans flex min-h-screen flex-col bg-white">
+          {/* Header bar */}
+          <header className="flex shrink-0 items-center justify-between border-b border-black/[0.08] px-6 py-4">
+            <button className="flex h-14 w-14 items-center justify-center rounded-full border-none bg-transparent text-black transition-colors hover:bg-black/[0.06] hover:text-[#515151]" aria-label="User profile">
+              <svg className="h-9 w-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <circle cx="12" cy="8" r="3.5"/>
+                <path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/>
+              </svg>
+            </button>
+            <button className="flex h-14 w-14 items-center justify-center rounded-full border-none bg-transparent text-black transition-colors hover:bg-black/[0.06] hover:text-[#515151]" aria-label="Menu">
+              <svg className="h-9 w-9" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path d="M4 6h16M4 12h16M4 18h16"/>
+              </svg>
+            </button>
           </header>
 
-          {/* ─── ERROR ─── */}
-          {error && (
-            <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-              <span className="mt-0.5 text-lg">⚠️</span>
-              <span>{error}</span>
-            </div>
-          )}
+          {/* Viewport: bubble and split stages */}
+          <div className={`hp-viewport${showForm ? " is-split" : ""}`}>
+            {/* Error overlay */}
+            {error && (
+              <div className="absolute top-4 right-4 left-4 z-20 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-center text-sm text-red-600">
+                {error}
+              </div>
+            )}
 
-          {/* ─── SETUP ─── */}
-          {phase === "setup" && (
-            <Card className="shadow-lg shadow-primary/5">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-base">
-                    📋
+            {/* ── Flow 1: Thought Bubble ── */}
+            <div className="hp-stage hp-stage--bubble">
+              <button
+                type="button"
+                className="block cursor-pointer border-none bg-transparent p-0 font-inherit text-inherit"
+                aria-label="Start interview setup"
+                onClick={() => setShowForm(true)}
+              >
+                <span className="thought-bubble">
+                  <span className="bubble-shape">
+                    <span className="bubble-logo">LockIntern</span>
                   </span>
-                  Interview Setup
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Tell us about the role and optionally upload your resume for
-                  personalized questions.
-                </p>
-              </CardHeader>
+                  <span className="bubble-dot bubble-dot--1" aria-hidden="true" />
+                  <span className="bubble-dot bubble-dot--2" aria-hidden="true" />
+                </span>
+              </button>
+            </div>
 
-              <CardContent className="space-y-5 pt-2">
-                {/* Role / Topic */}
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">
-                    Role / Topic <span className="text-destructive">*</span>
-                  </label>
-                  <Input
-                    value={topic}
-                    onChange={(e) => setTopic(e.target.value)}
-                    placeholder="e.g. Frontend React Developer, Product Manager…"
-                    className="h-11"
-                  />
+            {/* ── Flow 2: Split form ── */}
+            <div className="hp-stage hp-stage--split">
+              <div className="split-layout">
+                {/* Logo / back button */}
+                <div className="flex w-full max-w-[28rem] items-center justify-center">
+                  <button
+                    type="button"
+                    className="split-logo border-none bg-transparent"
+                    onClick={() => setShowForm(false)}
+                    aria-label="Back to start"
+                  >
+                    LockIntern
+                  </button>
                 </div>
 
-                {/* Job Description */}
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">
-                    Job Description{" "}
-                    <span className="font-normal text-muted-foreground">
-                      (optional)
-                    </span>
-                  </label>
-                  <Textarea
-                    value={jobDescription}
-                    onChange={(e) => setJobDescription(e.target.value)}
-                    placeholder="Paste the full job description here for more relevant questions…"
-                    rows={4}
-                    className="resize-none"
-                  />
-                </div>
-
-                <Separator />
-
-                {/* Resume Upload */}
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">
-                    Resume{" "}
-                    <span className="font-normal text-muted-foreground">
-                      (optional, PDF)
-                    </span>
-                  </label>
-                  <div className="relative">
-                    <label
-                      htmlFor="resume-upload"
-                      className="flex cursor-pointer items-center gap-3 rounded-lg border-2 border-dashed border-primary/20 bg-primary/[0.02] p-4 transition-colors hover:border-primary/40 hover:bg-primary/5"
+                {/* Actions */}
+                <div className="split-actions">
+                  {/* Join + Upload row */}
+                  <div className="action-buttons-row">
+                    <button
+                      type="button"
+                      className={`action-btn${
+                        !topic.trim() || parsingResume ? " action-btn--disabled" : ""
+                      }${parsingResume ? " action-btn--loading" : ""}`}
+                      disabled={!topic.trim() || parsingResume}
+                      onClick={generateQuestions}
                     >
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-lg">
-                        📄
+                      {parsingResume ? "Parsing…" : "Join"}
+                    </button>
+                    <label className="action-btn relative flex items-center justify-center">
+                      <span className="pointer-events-none">
+                        {resumeFile ? resumeFile.name.slice(0, 16) : "Upload resume"}
                       </span>
-                      <div className="min-w-0 flex-1">
-                        {resumeFile ? (
-                          <>
-                            <p className="truncate text-sm font-medium">
-                              {resumeFile.name}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {(resumeFile.size / 1024).toFixed(0)} KB — Click
-                              to change
-                            </p>
-                          </>
-                        ) : (
-                          <>
-                            <p className="text-sm font-medium text-muted-foreground">
-                              Click to upload your resume
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              PDF format, up to 10 MB
-                            </p>
-                          </>
-                        )}
-                      </div>
+                      <input
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        className="sr-only"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0] ?? null;
+                          setResumeFile(f);
+                          setResumeText("");
+                        }}
+                      />
                     </label>
+                  </div>
+
+                  {/* Job title field */}
+                  <div className="action-field-wrap">
+                    <label htmlFor="job-title" className="action-field-label">Job title</label>
                     <input
-                      id="resume-upload"
-                      type="file"
-                      accept=".pdf,application/pdf"
-                      className="sr-only"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0] ?? null;
-                        setResumeFile(f);
-                        setResumeText("");
-                      }}
+                      type="text"
+                      id="job-title"
+                      className="action-field"
+                      placeholder="Enter your job title"
+                      value={topic}
+                      onChange={(e) => setTopic(e.target.value)}
+                      autoComplete="organization-title"
                     />
                   </div>
-                </div>
 
-                <Separator />
-
-                {/* Question count */}
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-semibold">
-                    Number of Questions
-                  </label>
-                  <div className="flex items-center gap-1">
-                    {[3, 4, 5].map((n) => (
-                      <button
-                        key={n}
-                        onClick={() => setQuestionCount(n)}
-                        className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-semibold transition-colors ${
-                          questionCount === n
-                            ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
-                            : "bg-muted text-muted-foreground hover:bg-accent"
-                        }`}
-                      >
-                        {n}
-                      </button>
-                    ))}
+                  {/* Job description field */}
+                  <div className="action-field-wrap relative">
+                    <label htmlFor="job-description" className="action-field-label">Job Description</label>
+                    <textarea
+                      id="job-description"
+                      className="action-textarea"
+                      placeholder="Describe the role or paste a job description for AI prompting..."
+                      maxLength={3000}
+                      rows={4}
+                      value={jobDescription}
+                      onChange={(e) => setJobDescription(e.target.value)}
+                    />
+                    <span className="char-counter" aria-live="polite">
+                      {jobDescription.length}/3000
+                    </span>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-                {/* Start button */}
-                <Button
-                  onClick={generateQuestions}
-                  disabled={!topic.trim() || parsingResume}
-                  className="h-12 w-full text-base font-semibold shadow-lg shadow-primary/20"
-                  size="lg"
-                >
-                  {parsingResume ? (
-                    <span className="flex items-center gap-2">
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                      Parsing resume…
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      🚀 Join Interview
-                    </span>
-                  )}
-                </Button>
+      {/* ════════════════════════════════════════════
+          DONE view
+         ════════════════════════════════════════════ */}
+      {phase === "done" && (
+        <div className="mx-auto max-w-2xl space-y-6 px-4 py-10 sm:px-6">
+          {/* Summary header */}
+          <Card className="overflow-hidden border-0 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-xl shadow-primary/20">
+            <CardContent className="py-10 text-center">
+              <span className="mb-3 inline-block text-5xl">🎉</span>
+              <h2 className="text-2xl font-bold">Interview Complete!</h2>
+              <p className="mt-2 text-primary-foreground/80">
+                You answered{" "}
+                <span className="font-bold">{answers.length}</span> of{" "}
+                <span className="font-bold">{questions.length}</span>{" "}
+                questions. Here&apos;s your feedback:
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Per-question feedback cards */}
+          {answers.map((a, i) => (
+            <Card key={i} className="overflow-hidden shadow-md">
+              <div
+                className="h-1"
+                style={{
+                  background: `linear-gradient(to right, hsl(${260 + i * 20}, 60%, 55%), hsl(${280 + i * 20}, 50%, 65%))`,
+                }}
+              />
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                    {i + 1}
+                  </span>
+                  <CardTitle className="text-base leading-snug">
+                    {a.question}
+                  </CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-xl bg-muted/60 p-4 text-sm leading-relaxed whitespace-pre-wrap">
+                  {a.feedback}
+                </div>
               </CardContent>
             </Card>
-          )}
+          ))}
 
-          {/* ─── DONE ─── */}
-          {phase === "done" && (
-            <div className="space-y-6">
-              {/* Summary header */}
-              <Card className="overflow-hidden border-0 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-xl shadow-primary/20">
-                <CardContent className="py-10 text-center">
-                  <span className="mb-3 inline-block text-5xl">🎉</span>
-                  <h2 className="text-2xl font-bold">Interview Complete!</h2>
-                  <p className="mt-2 text-primary-foreground/80">
-                    You answered{" "}
-                    <span className="font-bold">{answers.length}</span> of{" "}
-                    <span className="font-bold">{questions.length}</span>{" "}
-                    questions. Here&apos;s your feedback:
-                  </p>
-                </CardContent>
-              </Card>
-
-              {/* Per-question feedback cards */}
-              {answers.map((a, i) => (
-                <Card key={i} className="overflow-hidden shadow-md">
-                  <div
-                    className="h-1"
-                    style={{
-                      background: `linear-gradient(to right, hsl(${260 + i * 20}, 60%, 55%), hsl(${280 + i * 20}, 50%, 65%))`,
-                    }}
-                  />
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                        {i + 1}
-                      </span>
-                      <CardTitle className="text-base leading-snug">
-                        {a.question}
-                      </CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="rounded-xl bg-muted/60 p-4 text-sm leading-relaxed whitespace-pre-wrap">
-                      {a.feedback}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-
-              {/* Restart */}
-              <Button
-                onClick={restart}
-                size="lg"
-                className="h-12 w-full gap-2 text-base font-semibold shadow-lg shadow-primary/20"
-              >
-                <span className="text-lg">🔄</span>
-                Start New Interview
-              </Button>
-            </div>
-          )}
+          {/* Restart */}
+          <Button
+            onClick={restart}
+            size="lg"
+            className="h-12 w-full gap-2 text-base font-semibold shadow-lg shadow-primary/20"
+          >
+            <span className="text-lg">🔄</span>
+            Start New Interview
+          </Button>
         </div>
       )}
     </div>
