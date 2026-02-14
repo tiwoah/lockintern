@@ -6,27 +6,33 @@ import { Input } from "@/components/ui/input";
 import { useAudioStore } from "@/context/AudioContext";
 import { useJobDescription } from "@/context/JobDescriptionContext";
 import { useResume } from "@/context/ResumeContext";
+import { useInterview } from "@/context/InterviewContext";
 
 export default function AutoAudioToGemini() {
   const { file } = useAudioStore();
   const { jobDescription } = useJobDescription();
   const { resumeFile } = useResume();
+  const { isInterviewActive } = useInterview();
 
   const [instruction, setInstruction] = useState(
     "Respond in a friendly but brief manner.",
   );
 
   const prompt = useMemo(() => {
-    let promptText = `${instruction}\n\nHere is the job description:\n${
-      (jobDescription ?? "").trim() || "(none)"
-    }`;
+    let promptText = isInterviewActive
+      ? `You are conducting a job interview. ${instruction}\n\nHere is the job description:\n${
+          (jobDescription ?? "").trim() || "(none)"
+        }`
+      : `${instruction}\n\nHere is the job description:\n${
+          (jobDescription ?? "").trim() || "(none)"
+        }`;
     
     if (resumeFile) {
-      promptText += `\n\nA resume PDF has been provided as additional context. Please use it to tailor your responses.`;
+      promptText += `\n\nA resume PDF has been provided as additional context. Please use it to tailor your responses and ask relevant questions based on the candidate's background.`;
     }
     
     return promptText;
-  }, [instruction, jobDescription, resumeFile]);
+  }, [instruction, jobDescription, resumeFile, isInterviewActive]);
 
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
@@ -113,19 +119,24 @@ export default function AutoAudioToGemini() {
     setResult(data?.text ?? "");
   }
 
-  // instantly send when a new recording lands in context
+  // instantly send when a new recording lands in context (only if interview is active)
   useEffect(() => {
+    if (!isInterviewActive) return;
     if (!file || !fileKey) return;
     if (autoSentForFileKey === fileKey) return;
     setAutoSentForFileKey(fileKey);
     void send(file);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fileKey]);
+  }, [fileKey, isInterviewActive]);
 
   // auto TTS + play when result changes
   useEffect(() => {
     void speak(result);
   }, [result]);
+
+  if (!isInterviewActive) {
+    return null;
+  }
 
   return (
     <div className="space-y-4">

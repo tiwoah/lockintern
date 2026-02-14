@@ -4,6 +4,7 @@ import "./globals.css";
 import { AudioProvider } from "@/context/AudioContext";
 import { JobDescriptionProvider } from "@/context/JobDescriptionContext";
 import { ResumeProvider } from "@/context/ResumeContext";
+import { InterviewProvider } from "@/context/InterviewContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +33,9 @@ export default function RootLayout({
       >
         <AudioProvider>
           <JobDescriptionProvider>
-            <ResumeProvider>{children}</ResumeProvider>
+            <ResumeProvider>
+              <InterviewProvider>{children}</InterviewProvider>
+            </ResumeProvider>
           </JobDescriptionProvider>
         </AudioProvider>
       </body>

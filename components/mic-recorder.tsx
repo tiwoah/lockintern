@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { blobToWavFile } from "@/utils/blobToWav";
 import { useAudioStore } from "@/context/AudioContext";
+import { useInterview } from "@/context/InterviewContext";
 
 export default function MicRecorder() {
   const {
@@ -13,6 +14,7 @@ export default function MicRecorder() {
     setAudio,
     clearAudio,
   } = useAudioStore();
+  const { isInterviewActive } = useInterview();
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -91,6 +93,10 @@ export default function MicRecorder() {
     if (type.includes("mp4")) return "m4a";
     if (type.includes("webm")) return "webm";
     return "audio";
+  }
+
+  if (!isInterviewActive) {
+    return null;
   }
 
   return (
