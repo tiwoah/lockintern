@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AudioProvider } from "@/context/AudioContext";
+import { JobDescriptionProvider } from "@/context/JobDescriptionContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,7 +29,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AudioProvider>{children}</AudioProvider>
+        <AudioProvider>
+          <JobDescriptionProvider>{children}</JobDescriptionProvider>
+        </AudioProvider>
       </body>
     </html>
   );

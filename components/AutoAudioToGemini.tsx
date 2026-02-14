@@ -1,16 +1,25 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAudioStore } from "@/context/AudioContext";
+import { useJobDescription } from "@/context/JobDescriptionContext";
 
 export default function AutoAudioToGemini() {
   const { file } = useAudioStore();
+  const { jobDescription } = useJobDescription();
 
-  const [prompt, setPrompt] = useState(
+  const [instruction, setInstruction] = useState(
     "Respond in a friendly but brief manner.",
   );
+
+  const prompt = useMemo(() => {
+    return `${instruction}\n\nHere is the job description:\n${
+      (jobDescription ?? "").trim() || "(none)"
+    }`;
+  }, [instruction, jobDescription]);
+
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
   const [autoSentForFileKey, setAutoSentForFileKey] = useState<string | null>(
@@ -110,9 +119,9 @@ export default function AutoAudioToGemini() {
   return (
     <div className="space-y-4">
       <Input
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        placeholder="Prompt"
+        value={instruction}
+        onChange={(e) => setInstruction(e.target.value)}
+        placeholder="Instruction"
       />
 
       {file ? (

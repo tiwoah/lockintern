@@ -37,7 +37,7 @@ export async function POST(req: Request) {
 
     const response = await ai.models.generateContent({
       // Use a model that supports audio input in the Gemini API
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.5-flash",
       contents,
     });
 
