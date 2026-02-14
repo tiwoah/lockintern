@@ -264,14 +264,14 @@
   justify-content: center;
   min-width: 22rem;
   padding: 2.25rem 4rem;
-  background: #87CEEB;
+  background: #4779E8;
   border-radius: 5rem 1rem 5rem 1rem;
 }
 
 .bubble-dot {
   position: absolute;
   left: 1.25rem;
-  background: #87CEEB;
+  background: #4779E8;
   border-radius: 50%;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
@@ -294,7 +294,7 @@
 .bubble-logo {
   font-size: clamp(2.5rem, 5vw, 3.75rem);
   font-weight: 700;
-  color: #000;
+  color: #fff;
   letter-spacing: 0.02em;
 }
 
