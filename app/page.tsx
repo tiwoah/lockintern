@@ -1,3 +1,4 @@
+import AudioToGemini from "@/components/AudioToGemini";
 import Example from "@/components/example";
 import MicRecorder from "@/components/mic-recorder";
 import TextToSpeech from "@/components/TextToSpeech";
@@ -15,6 +16,7 @@ export default function Home() {
       <Example />
       <TextToSpeech />
       <MicRecorder />
+      <AudioToGemini />
     </div>
   );
 }
