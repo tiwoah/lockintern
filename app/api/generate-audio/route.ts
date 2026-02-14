@@ -9,6 +9,7 @@ export async function POST(req: Request) {
 
     const prompt = String(form.get("prompt") ?? "Please summarize the audio.");
     const audio = form.get("audio");
+    const resume = form.get("resume");
 
     if (!(audio instanceof File)) {
       return NextResponse.json(
@@ -18,22 +19,33 @@ export async function POST(req: Request) {
     }
 
     // Convert File -> base64 (Node runtime)
-    const arrayBuffer = await audio.arrayBuffer();
-    const base64 = Buffer.from(arrayBuffer).toString("base64");
-
-    const mimeType = audio.type || "audio/mpeg";
+    const audioArrayBuffer = await audio.arrayBuffer();
+    const audioBase64 = Buffer.from(audioArrayBuffer).toString("base64");
+    const audioMimeType = audio.type || "audio/mpeg";
 
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
-    const contents = [
+    const contents: any[] = [
       { text: prompt },
       {
         inlineData: {
-          mimeType,
-          data: base64,
+          mimeType: audioMimeType,
+          data: audioBase64,
         },
       },
     ];
+
+    // Add resume PDF if provided
+    if (resume instanceof File) {
+      const resumeArrayBuffer = await resume.arrayBuffer();
+      const resumeBase64 = Buffer.from(resumeArrayBuffer).toString("base64");
+      contents.push({
+        inlineData: {
+          mimeType: "application/pdf",
+          data: resumeBase64,
+        },
+      });
+    }
 
     const response = await ai.models.generateContent({
       // Use a model that supports audio input in the Gemini API

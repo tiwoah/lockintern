@@ -5,20 +5,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAudioStore } from "@/context/AudioContext";
 import { useJobDescription } from "@/context/JobDescriptionContext";
+import { useResume } from "@/context/ResumeContext";
 
 export default function AutoAudioToGemini() {
   const { file } = useAudioStore();
   const { jobDescription } = useJobDescription();
+  const { resumeFile } = useResume();
 
   const [instruction, setInstruction] = useState(
     "Respond in a friendly but brief manner.",
   );
 
   const prompt = useMemo(() => {
-    return `${instruction}\n\nHere is the job description:\n${
+    let promptText = `${instruction}\n\nHere is the job description:\n${
       (jobDescription ?? "").trim() || "(none)"
     }`;
-  }, [instruction, jobDescription]);
+    
+    if (resumeFile) {
+      promptText += `\n\nA resume PDF has been provided as additional context. Please use it to tailor your responses.`;
+    }
+    
+    return promptText;
+  }, [instruction, jobDescription, resumeFile]);
 
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
@@ -79,6 +87,9 @@ export default function AutoAudioToGemini() {
     const form = new FormData();
     form.append("prompt", prompt);
     form.append("audio", f);
+    if (resumeFile) {
+      form.append("resume", resumeFile);
+    }
 
     const res = await fetch("/api/generate-audio", {
       method: "POST",
