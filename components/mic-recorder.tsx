@@ -109,19 +109,6 @@ export default function MicRecorder() {
       </Button>
 
       {isRecording && <div>Recording: {formatTime(seconds)}</div>}
-
-      {audioUrl && (
-        <>
-          <audio controls src={audioUrl} />
-          {fileSize !== null && <div>Size: {formatSize(fileSize)}</div>}
-          <a
-            href={audioUrl}
-            download={`recording.${getExtension(mimeType || "")}`}
-          >
-            <Button>Download</Button>
-          </a>
-        </>
-      )}
     </div>
   );
 }
