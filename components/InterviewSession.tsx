@@ -231,6 +231,17 @@ export default function InterviewSession() {
     setRecordingSeconds(0);
     chunksRef.current = [];
 
+    // Capture question at start so we associate feedback with the right question
+    // even if state updates before the async submit completes
+    const questionIndexAtStart = currentIndex;
+    const questionTextAtStart = questions[currentIndex] ?? "";
+    const totalQuestionsAtStart = questions.length;
+
+    if (!questionTextAtStart.trim()) {
+      setError("No question to answer.");
+      return;
+    }
+
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     streamRef.current = stream;
 
@@ -250,8 +261,8 @@ export default function InterviewSession() {
       streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
 
-      // Submit answer
-      await submitAnswer(wavFile);
+      // Submit with the question we were answering when recording started
+      await submitAnswer(wavFile, questionIndexAtStart, questionTextAtStart, totalQuestionsAtStart);
     };
 
     mr.start();
@@ -274,15 +285,26 @@ export default function InterviewSession() {
   }
 
   // ── Submit answer audio ──
-  async function submitAnswer(audioFile: File) {
+  async function submitAnswer(
+    audioFile: File,
+    forQuestionIndex: number,
+    questionText: string,
+    totalQuestions: number
+  ) {
     setPhase("submitting");
     setError("");
 
+    if (!questionText.trim()) {
+      setError("Missing question.");
+      setPhase("question");
+      return;
+    }
+
     try {
       const form = new FormData();
-      form.append("question", questions[currentIndex]);
-      form.append("questionIndex", String(currentIndex + 1));
-      form.append("totalQuestions", String(questions.length));
+      form.append("question", questionText);
+      form.append("questionIndex", String(forQuestionIndex + 1));
+      form.append("totalQuestions", String(totalQuestions));
       form.append("audio", audioFile);
       if (resumeText) form.append("resumeText", resumeText);
       if (jobDescription.trim())
@@ -307,10 +329,10 @@ export default function InterviewSession() {
 
       setAnswers((prev) => [
         ...prev,
-        { question: questions[currentIndex], feedback: data.feedback! },
+        { question: questionText, feedback: data.feedback! },
       ]);
-
       setPhase("feedback");
+      setIsChatOpen(true); // ensure feedback panel is visible
 
       // Speak the overall feedback
       void speak(data.feedback.overall);
