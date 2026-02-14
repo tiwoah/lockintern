@@ -139,29 +139,18 @@ export default function AutoAudioToGemini() {
   }
 
   return (
-    <div className="space-y-4">
-      <Input
-        value={instruction}
-        onChange={(e) => setInstruction(e.target.value)}
-        placeholder="Instruction"
-      />
-
-      {file ? (
-        <div className="text-sm">
-          {file.name} • {(file.size / 1024 / 1024).toFixed(2)} MB •{" "}
-          {file.type || "unknown mime"}
+    <div className="space-y-2 w-full max-w-md">
+      {loading && (
+        <div className="text-sm text-muted-foreground text-center">
+          Processing your response...
         </div>
-      ) : (
-        <div className="text-sm">No recorded audio yet.</div>
       )}
-
-      <Button onClick={() => file && send(file)} disabled={!file || loading}>
-        {loading ? "Sending..." : "Send"}
-      </Button>
-
-      {result && <pre className="whitespace-pre-wrap">{result}</pre>}
-
-      <audio ref={audioRef} controls />
+      {result && (
+        <div className="text-sm text-muted-foreground text-center max-h-32 overflow-y-auto">
+          {result}
+        </div>
+      )}
+      <audio ref={audioRef} className="hidden" />
     </div>
   );
 }

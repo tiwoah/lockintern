@@ -4,7 +4,11 @@ import { createContext, useContext, useState } from "react";
 
 type InterviewContextType = {
   isInterviewActive: boolean;
+  hasIntroductionPlayed: boolean;
+  hasConfirmed: boolean;
   startInterview: () => void;
+  setIntroductionPlayed: () => void;
+  confirmReady: () => void;
   exitInterview: () => void;
 };
 
@@ -16,18 +20,40 @@ export function InterviewProvider({
   children: React.ReactNode;
 }) {
   const [isInterviewActive, setIsInterviewActive] = useState(false);
+  const [hasIntroductionPlayed, setHasIntroductionPlayed] = useState(false);
+  const [hasConfirmed, setHasConfirmed] = useState(false);
 
   const startInterview = () => {
     setIsInterviewActive(true);
+    setHasIntroductionPlayed(false);
+    setHasConfirmed(false);
+  };
+
+  const setIntroductionPlayed = () => {
+    setHasIntroductionPlayed(true);
+  };
+
+  const confirmReady = () => {
+    setHasConfirmed(true);
   };
 
   const exitInterview = () => {
     setIsInterviewActive(false);
+    setHasIntroductionPlayed(false);
+    setHasConfirmed(false);
   };
 
   return (
     <InterviewContext.Provider
-      value={{ isInterviewActive, startInterview, exitInterview }}
+      value={{
+        isInterviewActive,
+        hasIntroductionPlayed,
+        hasConfirmed,
+        startInterview,
+        setIntroductionPlayed,
+        confirmReady,
+        exitInterview,
+      }}
     >
       {children}
     </InterviewContext.Provider>
