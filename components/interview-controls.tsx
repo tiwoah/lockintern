@@ -6,7 +6,11 @@ import { Play } from "lucide-react";
 import { useInterview } from "@/context/InterviewContext";
 import { useJobDescription } from "@/context/JobDescriptionContext";
 import { useResume } from "@/context/ResumeContext";
-import { generateIntroductionText, speakText } from "@/utils/interviewUtils";
+import {
+  generateIntroductionText,
+  generateInterviewQuestions,
+  speakText,
+} from "@/utils/interviewUtils";
 import { InterviewLoading } from "@/components/interview-loading";
 
 export function InterviewControls() {
@@ -21,28 +25,30 @@ export function InterviewControls() {
     const minimumLoadingTime = 3000; // Minimum 3 seconds to show messages
 
     try {
-      // Generate introduction text
-      const introductionText = await generateIntroductionText(
-        jobDescription,
-        resumeFile ?? null
-      );
+      // Generate introduction text and questions in parallel
+      const [introductionText, questions] = await Promise.all([
+        generateIntroductionText(jobDescription, resumeFile ?? null),
+        generateInterviewQuestions(jobDescription, resumeFile ?? null, 5),
+      ]);
 
-      // Speak the introduction
+      // Ensure minimum loading time
+      const elapsed = Date.now() - startTime;
+      if (elapsed < minimumLoadingTime) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, minimumLoadingTime - elapsed)
+        );
+      }
+
+      // Start interview with questions
+      startInterview(questions);
+
+      // Speak the introduction after starting the interview
       try {
         await speakText(introductionText);
       } catch (error) {
         console.error("TTS error:", error);
         // Continue even if TTS fails
       }
-
-      // Ensure minimum loading time
-      const elapsed = Date.now() - startTime;
-      if (elapsed < minimumLoadingTime) {
-        await new Promise((resolve) => setTimeout(resolve, minimumLoadingTime - elapsed));
-      }
-
-      // Start interview after introduction
-      startInterview();
     } catch (error) {
       console.error("Error starting interview:", error);
       alert(error instanceof Error ? error.message : "Failed to start interview");
