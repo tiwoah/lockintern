@@ -5,8 +5,9 @@ export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
   try {
-    const { topic, count, resumeText, jobDescription } = (await request.json()) as {
+    const { topic, company, count, resumeText, jobDescription } = (await request.json()) as {
       topic: string;
+      company?: string;
       count?: number;
       resumeText?: string;
       jobDescription?: string;
@@ -24,6 +25,10 @@ export async function POST(request: NextRequest) {
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
     // Build context sections for resume and job description
+    const companyLine = company?.trim()
+      ? `\nTarget Company: ${company.trim()}`
+      : "";
+
     const resumeSection = resumeText?.trim()
       ? `\n\nCandidate's Resume:\n"""\n${resumeText.trim()}\n"""`
       : "";
@@ -34,11 +39,12 @@ export async function POST(request: NextRequest) {
 
     const prompt = `You are an expert interviewer. Generate exactly ${questionCount} interview questions for the following topic or role:
 
-"${topic}"${resumeSection}${jdSection}
+"${topic}"${companyLine}${resumeSection}${jdSection}
 
 Rules:
 - Questions should be behavioral or situational (e.g. "Tell me about a time…", "How would you handle…").
 - Mix difficulty: include easy, medium, and hard questions.${resumeText?.trim() ? "\n- Reference specific experiences, skills, or projects from the candidate's resume when relevant." : ""}${jobDescription?.trim() ? "\n- Tailor questions to the responsibilities and requirements in the job description." : ""}
+- If a company is provided, align tone and priorities with that company's culture and interview style.
 - Return ONLY a valid JSON array of strings with no extra text, markdown, or code fences.
 
 Example output:

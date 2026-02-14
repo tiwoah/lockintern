@@ -2,8 +2,21 @@
 
 import { useRef, useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { blobToWavFile } from "@/utils/blobToWav";
+import {
+  AlertTriangle,
+  ClipboardList,
+  FileText,
+  Flag,
+  Mic,
+  PartyPopper,
+  RotateCcw,
+  User as UserIcon,
+} from "lucide-react";
 
 type Phase =
   | "setup"
@@ -14,14 +27,27 @@ type Phase =
   | "feedback"
   | "done";
 
+interface FeedbackCategory {
+  name: string;
+  score: number;
+  feedback: string;
+}
+
+interface StructuredFeedback {
+  transcript?: string;
+  categories: FeedbackCategory[];
+  overall: string;
+}
+
 interface AnswerRecord {
   question: string;
-  feedback: string;
+  feedback: StructuredFeedback;
 }
 
 export default function InterviewSession() {
   // ── Setup state ──
   const [topic, setTopic] = useState("");
+  const [company, setCompany] = useState("");
   const [questionCount, setQuestionCount] = useState(3);
   const [jobDescription, setJobDescription] = useState("");
   const [resumeFile, setResumeFile] = useState<File | null>(null);
@@ -163,6 +189,7 @@ export default function InterviewSession() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           topic: topic.trim(),
+          company: company.trim() || undefined,
           count: questionCount,
           resumeText: currentResumeText || undefined,
           jobDescription: jobDescription.trim() || undefined,
@@ -260,6 +287,7 @@ export default function InterviewSession() {
       if (resumeText) form.append("resumeText", resumeText);
       if (jobDescription.trim())
         form.append("jobDescription", jobDescription.trim());
+      if (company.trim()) form.append("company", company.trim());
 
       const res = await fetch("/api/interview/answer", {
         method: "POST",
@@ -267,7 +295,7 @@ export default function InterviewSession() {
       });
 
       const data = (await res.json()) as {
-        feedback?: string;
+        feedback?: StructuredFeedback;
         error?: string;
       };
 
@@ -284,8 +312,8 @@ export default function InterviewSession() {
 
       setPhase("feedback");
 
-      // Speak the feedback
-      void speak(data.feedback);
+      // Speak the overall feedback
+      void speak(data.feedback.overall);
     } catch {
       setError("Network error submitting answer.");
       setPhase("question");
@@ -317,6 +345,7 @@ export default function InterviewSession() {
     setAnswers([]);
     setError("");
     setTopic("");
+    setCompany("");
     setJobDescription("");
     setResumeFile(null);
     setResumeText("");
@@ -407,7 +436,7 @@ export default function InterviewSession() {
           <div className="flex h-12 items-center justify-between border-b border-white/5 bg-[#1a1a2e] px-4">
             <div className="flex items-center gap-3">
               <span className="text-sm font-semibold text-white">
-                Lock<span className="text-[#7b6fe6]">Intern</span>
+                Lock<span className="text-[#3A86FF]">Intern</span>
               </span>
               <span className="hidden text-xs text-white/40 sm:inline">|</span>
               <span className="hidden text-xs text-white/40 sm:inline">
@@ -435,7 +464,7 @@ export default function InterviewSession() {
               <div
                 className={`relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#252547] to-[#1e1e3a] ${
                   phase === "question" || phase === "generating"
-                    ? "ring-2 ring-[#7b6fe6]/40"
+                    ? "ring-2 ring-[#3A86FF]/40"
                     : ""
                 }`}
               >
@@ -449,7 +478,7 @@ export default function InterviewSession() {
                       {[0, 1, 2, 3].map((i) => (
                         <span
                           key={i}
-                          className="inline-block w-[3px] rounded-full bg-[#7b6fe6]"
+                          className="inline-block w-[3px] rounded-full bg-[#3A86FF]"
                           style={{
                             animationName: "sound-wave",
                             animationDuration: "0.6s",
@@ -465,7 +494,7 @@ export default function InterviewSession() {
                 </div>
 
                 {/* AI Avatar */}
-                <div className={`flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-[#7b6fe6] to-[#5b4fc6] text-4xl shadow-lg shadow-[#7b6fe6]/20 sm:h-32 sm:w-32 sm:text-5xl ${
+                <div className={`flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-[#3A86FF] to-[#2A6DE0] text-4xl shadow-lg shadow-[#3A86FF]/20 sm:h-32 sm:w-32 sm:text-5xl ${
                   phase === "question" || phase === "generating" ? "animate-float" : ""
                 }`}>
                 </div>
@@ -482,7 +511,7 @@ export default function InterviewSession() {
                 {/* Generating / connecting state */}
                 {phase === "generating" && (
                   <div className="mt-6 text-center">
-                    <div className="mx-auto mb-3 h-6 w-6 animate-spin rounded-full border-2 border-white/20 border-t-[#7b6fe6]" />
+                    <div className="mx-auto mb-3 h-6 w-6 animate-spin rounded-full border-2 border-white/20 border-t-[#3A86FF]" />
                     <p className="text-sm text-white/50">Connecting…</p>
                   </div>
                 )}
@@ -510,8 +539,8 @@ export default function InterviewSession() {
 
                 {/* Fallback avatar when cam is off */}
                 {!isCamOn && (
-                  <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-[#4a4a6a] to-[#3a3a5a] text-4xl sm:h-32 sm:w-32 sm:text-5xl">
-                    👤
+                  <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-[#4a4a6a] to-[#3a3a5a] sm:h-32 sm:w-32">
+                    <UserIcon className="h-12 w-12 text-white/80 sm:h-16 sm:w-16" />
                   </div>
                 )}
 
@@ -536,153 +565,109 @@ export default function InterviewSession() {
             </div>
           </div>
 
-          {/* ─── FEEDBACK CHAT PANEL (slides from right) ─── */}
+          {/* ─── FEEDBACK PANEL (full screen overlay) ─── */}
           {phase === "feedback" && answers.length > 0 && isChatOpen && (
-            <div className="absolute top-12 right-0 bottom-16 z-20 flex w-full flex-col border-l border-white/5 bg-[#1e1e38]/95 backdrop-blur-md sm:w-96"
-              style={{ animation: "slide-in-right 0.3s ease forwards" }}
+            <div className="absolute inset-0 z-20 flex flex-col bg-[#1a1a2e]/98 backdrop-blur-xl"
+              style={{ animation: "slide-in-right 0.25s ease forwards" }}
             >
-              {/* Chat header */}
-              <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
-                <span className="text-sm font-semibold text-white/90">Feedback</span>
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-white/5 px-6 py-4">
+                <div>
+                  <h2 className="text-lg font-bold text-white">Feedback</h2>
+                  <p className="text-xs text-white/40">Question {currentIndex + 1} of {questions.length}</p>
+                </div>
                 <button
                   onClick={() => setIsChatOpen(false)}
-                  className="flex h-7 w-7 items-center justify-center rounded-md text-white/50 transition-colors hover:bg-white/10 hover:text-white"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white"
                 >
                   ✕
                 </button>
               </div>
-              {/* Chat body */}
-              <div className="flex-1 overflow-y-auto p-4">
-                <div className="space-y-3">
-                  <div className="flex gap-2.5">
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#7b6fe6]/20 text-sm">
-                      🤖
+              {/* Body — transcript + score cards */}
+              <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-8">
+                {/* Transcript */}
+                {answers[answers.length - 1].feedback.transcript && (
+                  <div className="mx-auto mb-4 max-w-3xl rounded-2xl bg-white/5 p-5">
+                    <div className="mb-2 flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-white/70" />
+                      <span className="text-sm font-bold text-white">Your Answer (Transcript)</span>
                     </div>
-                    <div className="min-w-0 flex-1 rounded-xl rounded-tl-sm bg-white/5 p-3 text-sm leading-relaxed text-white/80 whitespace-pre-wrap">
-                      {answers[answers.length - 1].feedback}
-                    </div>
+                    <p className="text-sm leading-relaxed text-white/60 italic">
+                      &ldquo;{answers[answers.length - 1].feedback.transcript}&rdquo;
+                    </p>
                   </div>
+                )}
+                <div className="mx-auto grid max-w-3xl gap-4 sm:grid-cols-2">
+                  {answers[answers.length - 1].feedback.categories.map((cat) => (
+                    <div key={cat.name} className="rounded-2xl bg-white/5 p-5">
+                      <div className="mb-3 flex items-center justify-between">
+                        <span className="text-sm font-bold text-white">{cat.name}</span>
+                        <span className="text-sm font-bold text-white">{cat.score}/5</span>
+                      </div>
+                      <div className="mb-3 flex gap-1.5">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <div
+                            key={i}
+                            className={`h-3 flex-1 rounded-full ${
+                              i <= cat.score
+                                ? cat.score <= 1
+                                  ? "bg-red-500"
+                                  : cat.score <= 2
+                                    ? "bg-orange-500"
+                                    : cat.score <= 3
+                                      ? "bg-yellow-500"
+                                      : cat.score <= 4
+                                        ? "bg-lime-500"
+                                        : "bg-green-500"
+                                : "bg-white/10"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      {cat.feedback && (
+                        <p className="text-sm leading-relaxed text-white/60">{cat.feedback}</p>
+                      )}
+                    </div>
+                  ))}
                 </div>
+                {answers[answers.length - 1].feedback.overall && (
+                  <div className="mx-auto mt-4 max-w-3xl rounded-2xl bg-[#3A86FF]/10 p-4 text-sm leading-relaxed text-white/70">
+                    {answers[answers.length - 1].feedback.overall}
+                  </div>
+                )}
               </div>
               {/* Next / Finish button */}
-              <div className="border-t border-white/5 p-3">
-                <button
-                  onClick={nextQuestion}
-                  className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#7b6fe6] font-semibold text-white transition-colors hover:bg-[#6b5fd6]"
-                >
-                  {currentIndex + 1 < questions.length ? (
-                    <>Next Question →</>
-                  ) : (
-                    <>🏁 Finish Interview</>
-                  )}
-                </button>
+              <div className="border-t border-white/5 px-6 py-4">
+                <div className="mx-auto max-w-3xl">
+                  <button
+                    onClick={nextQuestion}
+                    className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#3A86FF] text-sm font-semibold text-white transition-colors hover:bg-[#2A6DE0]"
+                  >
+                    {currentIndex + 1 < questions.length ? (
+                      <>Next Question →</>
+                    ) : (
+                      <>
+                        <Flag className="h-4 w-4" /> Finish Interview
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Feedback prompt when panel is closed */}
-          {phase === "feedback" && !isChatOpen && (
-            <button
-              onClick={() => setIsChatOpen(true)}
-              className="absolute right-4 bottom-20 z-20 flex h-10 items-center gap-2 rounded-full bg-[#7b6fe6] px-4 text-sm font-semibold text-white shadow-lg transition-all hover:bg-[#6b5fd6]"
-            >
-              💬 View Feedback
-            </button>
-          )}
-
           {/* ─── BOTTOM TOOLBAR ─── */}
-          <div className="flex h-16 items-center justify-center gap-2 border-t border-white/5 bg-[#1a1a2e] px-4 sm:gap-3">
-            {/* Mic / Record button */}
-            {phase === "question" ? (
-              <button
-                onClick={startRecording}
-                className="teams-toolbar-btn bg-white/10 text-white hover:bg-white/20"
-                title="Start recording"
-              >
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                  <line x1="12" x2="12" y1="19" y2="22" />
-                </svg>
-              </button>
-            ) : phase === "recording" ? (
-              <button
-                onClick={stopRecording}
-                className="teams-toolbar-btn bg-red-600 text-white hover:bg-red-700"
-                title="Stop recording"
-              >
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                  <rect x="6" y="6" width="12" height="12" rx="2" />
-                </svg>
-              </button>
-            ) : (
-              <button
-                className="teams-toolbar-btn cursor-not-allowed bg-white/5 text-white/30"
-                disabled
-                title="Mic"
-              >
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                  <line x1="12" x2="12" y1="19" y2="22" />
-                </svg>
-              </button>
-            )}
-
-            {/* Camera toggle */}
-            <button
-              onClick={toggleCam}
-              className={`teams-toolbar-btn ${
-                isCamOn
-                  ? "bg-white/10 text-white hover:bg-white/20"
-                  : "bg-white/5 text-red-400 hover:bg-white/10"
-              }`}
-              title={isCamOn ? "Turn off camera" : "Turn on camera"}
-            >
-              {isCamOn ? (
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5" />
-                  <rect x="2" y="6" width="14" height="12" rx="2" />
-                </svg>
-              ) : (
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M10.66 5H14a2 2 0 0 1 2 2v2.5l5.248-3.062A.5.5 0 0 1 22 6.87v10.128" />
-                  <rect x="2" y="6" width="14" height="12" rx="2" />
-                  <line x1="2" x2="22" y1="2" y2="22" />
-                </svg>
-              )}
-            </button>
-
-            {/* Chat toggle */}
-            {phase === "feedback" && (
-              <button
-                onClick={() => setIsChatOpen(!isChatOpen)}
-                className={`teams-toolbar-btn ${
-                  isChatOpen
-                    ? "bg-[#7b6fe6]/20 text-[#7b6fe6] hover:bg-[#7b6fe6]/30"
-                    : "bg-white/10 text-white hover:bg-white/20"
-                }`}
-                title="Toggle feedback chat"
-              >
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z" />
-                </svg>
-              </button>
-            )}
-
-            {/* Separator */}
-            <div className="mx-1 h-8 w-px bg-white/10 sm:mx-2" />
-
+          <div className="flex flex-col items-center gap-2 border-t border-white/5 bg-[#1a1a2e] px-4 py-3">
             {/* Progress pills */}
-            <div className="hidden items-center gap-1.5 sm:flex">
+            <div className="flex items-center gap-1.5">
               {questions.map((_, i) => (
                 <div
                   key={i}
-                  className={`h-2 w-2 rounded-full transition-colors ${
+                  className={`h-1.5 w-1.5 rounded-full transition-colors ${
                     i < currentIndex
                       ? "bg-green-500"
                       : i === currentIndex
-                        ? "bg-[#7b6fe6]"
+                        ? "bg-[#3A86FF]"
                         : "bg-white/20"
                   }`}
                   title={`Question ${i + 1}`}
@@ -690,21 +675,102 @@ export default function InterviewSession() {
               ))}
             </div>
 
-            {/* Spacer */}
-            <div className="flex-1" />
+            {/* Main buttons row */}
+            <div className="flex items-center gap-3">
+              {/* Mic / Record button */}
+              {phase === "question" ? (
+                <button
+                  onClick={startRecording}
+                  className="flex items-center gap-2 rounded-xl bg-white/10 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/20"
+                >
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                    <line x1="12" x2="12" y1="19" y2="22" />
+                  </svg>
+                  <span>Start Recording</span>
+                </button>
+              ) : phase === "recording" ? (
+                <button
+                  onClick={stopRecording}
+                  className="flex items-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-700"
+                >
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="6" width="12" height="12" rx="2" />
+                  </svg>
+                  <span>Stop Recording</span>
+                </button>
+              ) : (
+                <button
+                  className="flex cursor-not-allowed items-center gap-2 rounded-xl bg-white/5 px-5 py-2.5 text-sm font-medium text-white/30"
+                  disabled
+                >
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                    <line x1="12" x2="12" y1="19" y2="22" />
+                  </svg>
+                  <span>Mic</span>
+                </button>
+              )}
 
-            {/* Leave button */}
-            <button
-              onClick={leaveMeeting}
-              className="teams-toolbar-btn w-auto gap-2 rounded-lg bg-red-600 px-6 text-sm font-semibold text-white hover:bg-red-700"
-              title="Leave interview"
-            >
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91" />
-                <line x1="23" x2="1" y1="1" y2="23" />
-              </svg>
-              <span className="hidden sm:inline">Leave</span>
-            </button>
+              {/* Camera toggle */}
+              <button
+                onClick={toggleCam}
+                className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-colors ${
+                  isCamOn
+                    ? "bg-white/10 text-white hover:bg-white/20"
+                    : "bg-white/5 text-red-400 hover:bg-white/10"
+                }`}
+              >
+                {isCamOn ? (
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5" />
+                    <rect x="2" y="6" width="14" height="12" rx="2" />
+                  </svg>
+                ) : (
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10.66 5H14a2 2 0 0 1 2 2v2.5l5.248-3.062A.5.5 0 0 1 22 6.87v10.128" />
+                    <rect x="2" y="6" width="14" height="12" rx="2" />
+                    <line x1="2" x2="22" y1="2" y2="22" />
+                  </svg>
+                )}
+                <span>{isCamOn ? "Camera On" : "Camera Off"}</span>
+              </button>
+
+              {/* Chat toggle (feedback only) */}
+              {phase === "feedback" && (
+                <button
+                  onClick={() => setIsChatOpen(!isChatOpen)}
+                  className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-colors ${
+                    isChatOpen
+                      ? "bg-[#3A86FF]/20 text-[#3A86FF] hover:bg-[#3A86FF]/30"
+                      : "bg-white/10 text-white hover:bg-white/20"
+                  }`}
+                >
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z" />
+                  </svg>
+                  <span>Feedback</span>
+                </button>
+              )}
+
+              {/* Divider */}
+              <div className="h-8 w-px bg-white/10" />
+
+              {/* Leave button */}
+              <button
+                onClick={leaveMeeting}
+                className="flex items-center gap-2 rounded-xl bg-red-500/15 px-5 py-2.5 text-sm font-semibold text-red-400 transition-colors hover:bg-red-500/25 hover:text-red-300"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" x2="9" y1="12" y2="12" />
+                </svg>
+                <span>Leave</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -714,30 +780,10 @@ export default function InterviewSession() {
          ════════════════════════════════════════════ */}
       {phase === "setup" && (
         <div className="font-gsans flex min-h-screen flex-col bg-white">
-          {/* Header bar */}
-          <header className="flex shrink-0 items-center justify-between border-b border-black/[0.08] px-6 py-4">
-            <button className="flex h-14 w-14 items-center justify-center rounded-full border-none bg-transparent text-black transition-colors hover:bg-black/[0.06] hover:text-[#515151]" aria-label="User profile">
-              <svg className="h-9 w-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <circle cx="12" cy="8" r="3.5"/>
-                <path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/>
-              </svg>
-            </button>
-            <button className="flex h-14 w-14 items-center justify-center rounded-full border-none bg-transparent text-black transition-colors hover:bg-black/[0.06] hover:text-[#515151]" aria-label="Menu">
-              <svg className="h-9 w-9" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path d="M4 6h16M4 12h16M4 18h16"/>
-              </svg>
-            </button>
-          </header>
+          
 
-          {/* Viewport: bubble and split stages */}
+          {/* Viewport: bubble and form stages */}
           <div className={`hp-viewport${showForm ? " is-split" : ""}`}>
-            {/* Error overlay */}
-            {error && (
-              <div className="absolute top-4 right-4 left-4 z-20 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-center text-sm text-red-600">
-                {error}
-              </div>
-            )}
-
             {/* ── Flow 1: Thought Bubble ── */}
             <div className="hp-stage hp-stage--bubble">
               <button
@@ -756,83 +802,195 @@ export default function InterviewSession() {
               </button>
             </div>
 
-            {/* ── Flow 2: Split form ── */}
+            {/* ── Flow 2: Card form (fades in after bubble click) ── */}
             <div className="hp-stage hp-stage--split">
-              <div className="split-layout">
-                {/* Logo / back button */}
-                <div className="flex w-full max-w-[28rem] items-center justify-center">
+              <div className="mx-auto w-full max-w-2xl space-y-4 px-4 py-4 sm:px-6">
+                {/* Header */}
+                <header className="text-center">
                   <button
                     type="button"
-                    className="split-logo border-none bg-transparent"
+                    className="mb-2 inline-block cursor-pointer border-none bg-transparent p-0"
                     onClick={() => setShowForm(false)}
                     aria-label="Back to start"
                   >
-                    LockIntern
+                    <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+                      Lock<span className="text-primary">Intern</span>
+                    </h1>
                   </button>
-                </div>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Practice interviews with AI. Upload your resume, paste a job
+                    description, and get tailored questions &amp; feedback.
+                  </p>
+                </header>
 
-                {/* Actions */}
-                <div className="split-actions">
-                  {/* Join + Upload row */}
-                  <div className="action-buttons-row">
-                    <button
-                      type="button"
-                      className={`action-btn${
-                        !topic.trim() || parsingResume ? " action-btn--disabled" : ""
-                      }${parsingResume ? " action-btn--loading" : ""}`}
-                      disabled={!topic.trim() || parsingResume}
-                      onClick={generateQuestions}
-                    >
-                      {parsingResume ? "Parsing…" : "Join"}
-                    </button>
-                    <label className="action-btn relative flex items-center justify-center">
-                      <span className="pointer-events-none">
-                        {resumeFile ? resumeFile.name.slice(0, 16) : "Upload resume"}
+                {/* Error */}
+                {error && (
+                  <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+                    <AlertTriangle className="mt-0.5 h-5 w-5" />
+                    <span>{error}</span>
+                  </div>
+                )}
+
+                {/* Setup card */}
+                <Card className="shadow-lg shadow-primary/5">
+                  <CardHeader className="pb-1">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-sm text-primary">
+                        <ClipboardList className="h-4 w-4" />
                       </span>
-                      <input
-                        type="file"
-                        accept=".pdf,application/pdf"
-                        className="sr-only"
-                        onChange={(e) => {
-                          const f = e.target.files?.[0] ?? null;
-                          setResumeFile(f);
-                          setResumeText("");
-                        }}
+                      Interview Setup
+                    </CardTitle>
+                    <p className="text-xs text-muted-foreground">
+                      Tell us about the role and optionally upload your resume.
+                    </p>
+                  </CardHeader>
+
+                  <CardContent className="space-y-3 pt-1">
+                    {/* Role / Topic */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold">
+                        Role / Topic <span className="text-destructive">*</span>
+                      </label>
+                      <Input
+                        value={topic}
+                        onChange={(e) => setTopic(e.target.value)}
+                        placeholder="e.g. Frontend React Developer, Product Manager…"
+                        className="h-9"
                       />
-                    </label>
-                  </div>
+                    </div>
 
-                  {/* Job title field */}
-                  <div className="action-field-wrap">
-                    <label htmlFor="job-title" className="action-field-label">Job title</label>
-                    <input
-                      type="text"
-                      id="job-title"
-                      className="action-field"
-                      placeholder="Enter your job title"
-                      value={topic}
-                      onChange={(e) => setTopic(e.target.value)}
-                      autoComplete="organization-title"
-                    />
-                  </div>
+                    {/* Company */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold">
+                        Company{" "}
+                        <span className="font-normal text-muted-foreground">
+                          (optional)
+                        </span>
+                      </label>
+                      <Input
+                        value={company}
+                        onChange={(e) => setCompany(e.target.value)}
+                        placeholder="e.g. Stripe, Netflix, OpenAI…"
+                        className="h-9"
+                      />
+                    </div>
 
-                  {/* Job description field */}
-                  <div className="action-field-wrap relative">
-                    <label htmlFor="job-description" className="action-field-label">Job Description</label>
-                    <textarea
-                      id="job-description"
-                      className="action-textarea"
-                      placeholder="Describe the role or paste a job description for AI prompting..."
-                      maxLength={3000}
-                      rows={4}
-                      value={jobDescription}
-                      onChange={(e) => setJobDescription(e.target.value)}
-                    />
-                    <span className="char-counter" aria-live="polite">
-                      {jobDescription.length}/3000
-                    </span>
-                  </div>
-                </div>
+                    {/* Job Description */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold">
+                        Job Description{" "}
+                        <span className="font-normal text-muted-foreground">
+                          (optional)
+                        </span>
+                      </label>
+                      <Textarea
+                        value={jobDescription}
+                        onChange={(e) => setJobDescription(e.target.value)}
+                        placeholder="Paste the full job description here…"
+                        rows={3}
+                        className="resize-none text-sm"
+                      />
+                    </div>
+
+                    <Separator />
+
+                    {/* Resume Upload */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold">
+                        Resume{" "}
+                        <span className="font-normal text-muted-foreground">
+                          (optional, PDF)
+                        </span>
+                      </label>
+                      <div className="relative">
+                        <label
+                          htmlFor="resume-upload"
+                          className="flex cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed border-primary/20 bg-primary/[0.02] p-2.5 transition-colors hover:border-primary/40 hover:bg-primary/5"
+                        >
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm text-primary">
+                            <FileText className="h-4 w-4" />
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            {resumeFile ? (
+                              <>
+                                <p className="truncate text-sm font-medium">
+                                  {resumeFile.name}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {(resumeFile.size / 1024).toFixed(0)} KB — Click
+                                  to change
+                                </p>
+                              </>
+                            ) : (
+                              <>
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  Click to upload your resume
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  PDF format, up to 10 MB
+                                </p>
+                              </>
+                            )}
+                          </div>
+                        </label>
+                        <input
+                          id="resume-upload"
+                          type="file"
+                          accept=".pdf,application/pdf"
+                          className="sr-only"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0] ?? null;
+                            setResumeFile(f);
+                            setResumeText("");
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Question count */}
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-semibold">
+                        Number of Questions
+                      </label>
+                      <div className="flex items-center gap-1">
+                        {[3, 4, 5].map((n) => (
+                          <button
+                            key={n}
+                            onClick={() => setQuestionCount(n)}
+                            className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-semibold transition-colors ${
+                              questionCount === n
+                                ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
+                                : "bg-muted text-muted-foreground hover:bg-accent"
+                            }`}
+                          >
+                            {n}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Start button */}
+                    <Button
+                      onClick={generateQuestions}
+                      disabled={!topic.trim() || parsingResume}
+                      className="h-10 w-full text-sm font-semibold shadow-lg shadow-primary/20"
+                      size="default"
+                    >
+                      {parsingResume ? (
+                        <span className="flex items-center gap-2">
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                          Parsing resume…
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-2">
+                          Join Interview
+                        </span>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </div>
@@ -847,7 +1005,7 @@ export default function InterviewSession() {
           {/* Summary header */}
           <Card className="overflow-hidden border-0 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-xl shadow-primary/20">
             <CardContent className="py-10 text-center">
-              <span className="mb-3 inline-block text-5xl">🎉</span>
+              <PartyPopper className="mb-3 h-12 w-12" />
               <h2 className="text-2xl font-bold">Interview Complete!</h2>
               <p className="mt-2 text-primary-foreground/80">
                 You answered{" "}
@@ -877,10 +1035,55 @@ export default function InterviewSession() {
                   </CardTitle>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="rounded-xl bg-muted/60 p-4 text-sm leading-relaxed whitespace-pre-wrap">
-                  {a.feedback}
-                </div>
+              <CardContent className="space-y-3">
+                {/* Transcript */}
+                {a.feedback.transcript && (
+                  <div className="rounded-xl bg-muted/40 p-4">
+                    <div className="mb-1.5 flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-bold">Your Answer (Transcript)</span>
+                    </div>
+                    <p className="text-sm leading-relaxed text-muted-foreground italic">
+                      &ldquo;{a.feedback.transcript}&rdquo;
+                    </p>
+                  </div>
+                )}
+                {a.feedback.categories.map((cat) => (
+                  <div key={cat.name} className="rounded-xl bg-muted/60 p-4">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-sm font-bold">{cat.name}</span>
+                      <span className="text-sm font-bold">{cat.score}/5</span>
+                    </div>
+                    <div className="mb-2 flex gap-1.5">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <div
+                          key={i}
+                          className={`h-3 flex-1 rounded-full ${
+                            i <= cat.score
+                              ? cat.score <= 1
+                                ? "bg-red-500"
+                                : cat.score <= 2
+                                  ? "bg-orange-500"
+                                  : cat.score <= 3
+                                    ? "bg-yellow-500"
+                                    : cat.score <= 4
+                                      ? "bg-lime-500"
+                                      : "bg-green-500"
+                              : "bg-muted"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    {cat.feedback && (
+                      <p className="text-xs leading-relaxed text-muted-foreground">{cat.feedback}</p>
+                    )}
+                  </div>
+                ))}
+                {a.feedback.overall && (
+                  <div className="rounded-xl bg-primary/5 p-3 text-xs leading-relaxed text-muted-foreground">
+                    {a.feedback.overall}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
@@ -891,7 +1094,7 @@ export default function InterviewSession() {
             size="lg"
             className="h-12 w-full gap-2 text-base font-semibold shadow-lg shadow-primary/20"
           >
-            <span className="text-lg">🔄</span>
+            <RotateCcw className="h-5 w-5" />
             Start New Interview
           </Button>
         </div>
