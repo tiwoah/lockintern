@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Play } from "lucide-react";
 import { useInterview } from "@/context/InterviewContext";
 import { useJobDescription } from "@/context/JobDescriptionContext";
 import { useResume } from "@/context/ResumeContext";
 import { generateIntroductionText, speakText } from "@/utils/interviewUtils";
+import { InterviewLoading } from "@/components/interview-loading";
 
 export function InterviewControls() {
   const { isInterviewActive, startInterview, exitInterview } = useInterview();
@@ -15,6 +17,8 @@ export function InterviewControls() {
 
   async function handleStartInterview() {
     setLoading(true);
+    const startTime = Date.now();
+    const minimumLoadingTime = 3000; // Minimum 3 seconds to show messages
 
     try {
       // Generate introduction text
@@ -31,6 +35,12 @@ export function InterviewControls() {
         // Continue even if TTS fails
       }
 
+      // Ensure minimum loading time
+      const elapsed = Date.now() - startTime;
+      if (elapsed < minimumLoadingTime) {
+        await new Promise((resolve) => setTimeout(resolve, minimumLoadingTime - elapsed));
+      }
+
       // Start interview after introduction
       startInterview();
     } catch (error) {
@@ -39,6 +49,10 @@ export function InterviewControls() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (loading) {
+    return <InterviewLoading />;
   }
 
   if (isInterviewActive) {
@@ -56,7 +70,12 @@ export function InterviewControls() {
 
   return (
     <div className="space-y-2">
-      <Button onClick={handleStartInterview} disabled={loading}>
+      <Button
+        onClick={handleStartInterview}
+        disabled={loading}
+        className="bg-green-600 hover:bg-green-700 text-white gap-2"
+      >
+        <Play className="h-4 w-4" />
         {loading ? "Starting..." : "Start Interview"}
       </Button>
       <div className="text-sm text-muted-foreground">
