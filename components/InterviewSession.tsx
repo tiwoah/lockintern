@@ -1004,8 +1004,8 @@ export default function InterviewSession() {
         <div className="mx-auto max-w-2xl space-y-6 px-4 py-10 sm:px-6">
           {/* Summary header */}
           <Card className="overflow-hidden border-0 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-xl shadow-primary/20">
-            <CardContent className="py-10 text-center">
-              <PartyPopper className="mb-3 h-12 w-12" />
+            <CardContent className="flex flex-col items-center justify-center py-10 text-center">
+              <PartyPopper className="mx-auto mb-3 h-12 w-12 shrink-0" />
               <h2 className="text-2xl font-bold">Interview Complete!</h2>
               <p className="mt-2 text-primary-foreground/80">
                 You answered{" "}
@@ -1019,21 +1019,13 @@ export default function InterviewSession() {
           {/* Per-question feedback cards */}
           {answers.map((a, i) => (
             <Card key={i} className="overflow-hidden shadow-md">
-              <div
-                className="h-1"
-                style={{
-                  background: `linear-gradient(to right, hsl(${260 + i * 20}, 60%, 55%), hsl(${280 + i * 20}, 50%, 65%))`,
-                }}
-              />
               <CardHeader className="pb-2">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                    {i + 1}
-                  </span>
-                  <CardTitle className="text-base leading-snug">
-                    {a.question}
-                  </CardTitle>
-                </div>
+                <span className="mb-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                  {i + 1}
+                </span>
+                <CardTitle className="text-base leading-snug">
+                  {a.question}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {/* Transcript */}
