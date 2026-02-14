@@ -1,4 +1,5 @@
 import Example from "@/components/example";
+import MicRecorder from "@/components/mic-recorder";
 import TextToSpeech from "@/components/TextToSpeech";
 import { Button } from "@/components/ui/button";
 import { Mic } from "lucide-react";
@@ -13,6 +14,7 @@ export default function Home() {
       </Button>
       <Example />
       <TextToSpeech />
+      <MicRecorder />
     </div>
   );
 }
