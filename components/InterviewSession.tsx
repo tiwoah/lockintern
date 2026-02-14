@@ -431,20 +431,20 @@ export default function InterviewSession() {
           MEETING VIEW  (Teams-style)
          ════════════════════════════════════════════ */}
       {isMeetingView && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-[#1a1a2e]">
+        <div className="fixed inset-0 z-50 flex flex-col bg-gradient-to-br from-primary/5 via-background to-accent/30">
           {/* ─── TOP BAR ─── */}
-          <div className="flex h-12 items-center justify-between border-b border-white/5 bg-[#1a1a2e] px-4">
+          <div className="flex h-12 items-center justify-between border-b border-border bg-background/80 px-4 backdrop-blur-sm">
             <div className="flex items-center gap-3">
-              <span className="text-sm font-semibold text-white">
-                Lock<span className="text-[#3A86FF]">Intern</span>
+              <span className="text-sm font-semibold text-foreground">
+                Lock<span className="text-primary">Intern</span>
               </span>
-              <span className="hidden text-xs text-white/40 sm:inline">|</span>
-              <span className="hidden text-xs text-white/40 sm:inline">
+              <span className="hidden text-xs text-muted-foreground sm:inline">|</span>
+              <span className="hidden text-xs text-muted-foreground sm:inline">
                 {topic || "Interview"} — Q{currentIndex + 1}/{questions.length || "…"}
               </span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="font-mono text-xs tabular-nums text-white/50">
+              <span className="font-mono text-xs tabular-nums text-muted-foreground">
                 {formatTime(meetingSeconds)}
               </span>
             </div>
@@ -454,7 +454,7 @@ export default function InterviewSession() {
           <div className="relative flex flex-1 items-center justify-center gap-4 overflow-hidden p-4 sm:p-6">
             {/* Error overlay */}
             {error && (
-              <div className="absolute top-4 right-4 left-4 z-10 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-center text-sm text-red-300 backdrop-blur-sm">
+              <div className="absolute top-4 right-4 left-4 z-10 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-center text-sm text-destructive backdrop-blur-sm">
                 {error}
               </div>
             )}
@@ -462,15 +462,15 @@ export default function InterviewSession() {
             <div className="flex h-full w-full max-w-5xl flex-col gap-4 sm:flex-row">
               {/* ── AI Interviewer Tile ── */}
               <div
-                className={`relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#252547] to-[#1e1e3a] ${
+                className={`relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-2xl border border-border bg-card shadow-sm ${
                   phase === "question" || phase === "generating"
-                    ? "ring-2 ring-[#3A86FF]/40"
+                    ? "ring-2 ring-primary/30"
                     : ""
                 }`}
               >
                 {/* AI name label */}
-                <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-md bg-black/50 px-2.5 py-1 backdrop-blur-sm">
-                  <span className="text-xs font-medium text-white/90">
+                <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-md bg-muted/90 px-2.5 py-1 backdrop-blur-sm">
+                  <span className="text-xs font-medium text-foreground">
                     AI Interviewer
                   </span>
                   {(phase === "question" || phase === "generating") && (
@@ -478,7 +478,7 @@ export default function InterviewSession() {
                       {[0, 1, 2, 3].map((i) => (
                         <span
                           key={i}
-                          className="inline-block w-[3px] rounded-full bg-[#3A86FF]"
+                          className="inline-block w-[3px] rounded-full bg-primary"
                           style={{
                             animationName: "sound-wave",
                             animationDuration: "0.6s",
@@ -494,7 +494,7 @@ export default function InterviewSession() {
                 </div>
 
                 {/* AI Avatar */}
-                <div className={`flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-[#3A86FF] to-[#2A6DE0] text-4xl shadow-lg shadow-[#3A86FF]/20 sm:h-32 sm:w-32 sm:text-5xl ${
+                <div className={`flex h-24 w-24 items-center justify-center rounded-full bg-primary text-4xl text-primary-foreground shadow-lg shadow-primary/20 sm:h-32 sm:w-32 sm:text-5xl ${
                   phase === "question" || phase === "generating" ? "animate-float" : ""
                 }`}>
                 </div>
@@ -502,7 +502,7 @@ export default function InterviewSession() {
                 {/* Question text overlay */}
                 {phase !== "generating" && questions[currentIndex] && (
                   <div className="mt-6 max-w-md px-6 text-center">
-                    <p className="text-sm leading-relaxed text-white/70 sm:text-base">
+                    <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
                       &ldquo;{questions[currentIndex]}&rdquo;
                     </p>
                   </div>
@@ -511,17 +511,17 @@ export default function InterviewSession() {
                 {/* Generating / connecting state */}
                 {phase === "generating" && (
                   <div className="mt-6 text-center">
-                    <div className="mx-auto mb-3 h-6 w-6 animate-spin rounded-full border-2 border-white/20 border-t-[#3A86FF]" />
-                    <p className="text-sm text-white/50">Connecting…</p>
+                    <div className="mx-auto mb-3 h-6 w-6 animate-spin rounded-full border-2 border-muted border-t-primary" />
+                    <p className="text-sm text-muted-foreground">Connecting…</p>
                   </div>
                 )}
               </div>
 
               {/* ── User Tile ── */}
-              <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#2a2a4a] to-[#202040]">
+              <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
                 {/* User name label */}
-                <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-md bg-black/50 px-2.5 py-1 backdrop-blur-sm">
-                  <span className="text-xs font-medium text-white/90">You</span>
+                <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-md bg-muted/90 px-2.5 py-1 backdrop-blur-sm">
+                  <span className="text-xs font-medium text-foreground">You</span>
                   {phase === "recording" && (
                     <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
                   )}
@@ -539,14 +539,14 @@ export default function InterviewSession() {
 
                 {/* Fallback avatar when cam is off */}
                 {!isCamOn && (
-                  <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-[#4a4a6a] to-[#3a3a5a] sm:h-32 sm:w-32">
-                    <UserIcon className="h-12 w-12 text-white/80 sm:h-16 sm:w-16" />
+                  <div className="flex h-24 w-24 items-center justify-center rounded-full bg-muted sm:h-32 sm:w-32">
+                    <UserIcon className="h-12 w-12 text-muted-foreground sm:h-16 sm:w-16" />
                   </div>
                 )}
 
                 {/* Recording overlay */}
                 {phase === "recording" && (
-                  <div className="absolute top-3 right-3 flex items-center gap-2 rounded-full bg-red-600/80 px-3 py-1 backdrop-blur-sm">
+                  <div className="absolute top-3 right-3 flex items-center gap-2 rounded-full bg-red-600/90 px-3 py-1 backdrop-blur-sm">
                     <span className="h-2 w-2 animate-pulse rounded-full bg-white" />
                     <span className="font-mono text-xs font-semibold text-white">
                       REC {formatTime(recordingSeconds)}
@@ -556,9 +556,9 @@ export default function InterviewSession() {
 
                 {/* Submitting overlay */}
                 {phase === "submitting" && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm">
-                    <div className="mb-3 h-8 w-8 animate-spin rounded-full border-[3px] border-white/20 border-t-white" />
-                    <p className="text-sm font-medium text-white">Evaluating…</p>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
+                    <div className="mb-3 h-8 w-8 animate-spin rounded-full border-[3px] border-muted border-t-primary" />
+                    <p className="text-sm font-medium text-foreground">Evaluating…</p>
                   </div>
                 )}
               </div>
@@ -567,42 +567,42 @@ export default function InterviewSession() {
 
           {/* ─── FEEDBACK PANEL (full screen overlay) ─── */}
           {phase === "feedback" && answers.length > 0 && isChatOpen && (
-            <div className="absolute inset-0 z-20 flex flex-col bg-[#1a1a2e]/98 backdrop-blur-xl"
+            <div className="absolute inset-0 z-20 flex flex-col bg-background/98 backdrop-blur-xl border-l border-border shadow-xl"
               style={{ animation: "slide-in-right 0.25s ease forwards" }}
             >
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-white/5 px-6 py-4">
+              <div className="flex items-center justify-between border-b border-border bg-card px-6 py-4">
                 <div>
-                  <h2 className="text-lg font-bold text-white">Feedback</h2>
-                  <p className="text-xs text-white/40">Question {currentIndex + 1} of {questions.length}</p>
+                  <h2 className="text-lg font-bold text-foreground">Feedback</h2>
+                  <p className="text-xs text-muted-foreground">Question {currentIndex + 1} of {questions.length}</p>
                 </div>
                 <button
                   onClick={() => setIsChatOpen(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                 >
                   ✕
                 </button>
               </div>
               {/* Body — transcript + score cards */}
-              <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-8">
+              <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-8 bg-background">
                 {/* Transcript */}
                 {answers[answers.length - 1].feedback.transcript && (
-                  <div className="mx-auto mb-4 max-w-3xl rounded-2xl bg-white/5 p-5">
+                  <div className="mx-auto mb-4 max-w-3xl rounded-2xl bg-muted/50 border border-border p-5">
                     <div className="mb-2 flex items-center gap-2">
-                      <Mic className="h-4 w-4 text-white/70" />
-                      <span className="text-sm font-bold text-white">Your Answer (Transcript)</span>
+                      <Mic className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-bold text-foreground">Your Answer (Transcript)</span>
                     </div>
-                    <p className="text-sm leading-relaxed text-white/60 italic">
+                    <p className="text-sm leading-relaxed text-muted-foreground italic">
                       &ldquo;{answers[answers.length - 1].feedback.transcript}&rdquo;
                     </p>
                   </div>
                 )}
                 <div className="mx-auto grid max-w-3xl gap-4 sm:grid-cols-2">
                   {answers[answers.length - 1].feedback.categories.map((cat) => (
-                    <div key={cat.name} className="rounded-2xl bg-white/5 p-5">
+                    <div key={cat.name} className="rounded-2xl bg-card border border-border p-5 shadow-sm">
                       <div className="mb-3 flex items-center justify-between">
-                        <span className="text-sm font-bold text-white">{cat.name}</span>
-                        <span className="text-sm font-bold text-white">{cat.score}/5</span>
+                        <span className="text-sm font-bold text-foreground">{cat.name}</span>
+                        <span className="text-sm font-bold text-foreground">{cat.score}/5</span>
                       </div>
                       <div className="mb-3 flex gap-1.5">
                         {[1, 2, 3, 4, 5].map((i) => (
@@ -619,29 +619,29 @@ export default function InterviewSession() {
                                       : cat.score <= 4
                                         ? "bg-lime-500"
                                         : "bg-green-500"
-                                : "bg-white/10"
+                                : "bg-muted"
                             }`}
                           />
                         ))}
                       </div>
                       {cat.feedback && (
-                        <p className="text-sm leading-relaxed text-white/60">{cat.feedback}</p>
+                        <p className="text-sm leading-relaxed text-muted-foreground">{cat.feedback}</p>
                       )}
                     </div>
                   ))}
                 </div>
                 {answers[answers.length - 1].feedback.overall && (
-                  <div className="mx-auto mt-4 max-w-3xl rounded-2xl bg-[#3A86FF]/10 p-4 text-sm leading-relaxed text-white/70">
+                  <div className="mx-auto mt-4 max-w-3xl rounded-2xl bg-primary/10 border border-primary/20 p-4 text-sm leading-relaxed text-foreground">
                     {answers[answers.length - 1].feedback.overall}
                   </div>
                 )}
               </div>
               {/* Next / Finish button */}
-              <div className="border-t border-white/5 px-6 py-4">
+              <div className="border-t border-border bg-card px-6 py-4">
                 <div className="mx-auto max-w-3xl">
                   <button
                     onClick={nextQuestion}
-                    className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#3A86FF] text-sm font-semibold text-white transition-colors hover:bg-[#2A6DE0]"
+                    className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                   >
                     {currentIndex + 1 < questions.length ? (
                       <>Next Question →</>
@@ -657,7 +657,7 @@ export default function InterviewSession() {
           )}
 
           {/* ─── BOTTOM TOOLBAR ─── */}
-          <div className="flex flex-col items-center gap-2 border-t border-white/5 bg-[#1a1a2e] px-4 py-3">
+          <div className="flex flex-col items-center gap-2 border-t border-border bg-background/80 px-4 py-3 backdrop-blur-sm">
             {/* Progress pills */}
             <div className="flex items-center gap-1.5">
               {questions.map((_, i) => (
@@ -667,8 +667,8 @@ export default function InterviewSession() {
                     i < currentIndex
                       ? "bg-green-500"
                       : i === currentIndex
-                        ? "bg-[#3A86FF]"
-                        : "bg-white/20"
+                        ? "bg-primary"
+                        : "bg-muted-foreground/40"
                   }`}
                   title={`Question ${i + 1}`}
                 />
@@ -681,7 +681,7 @@ export default function InterviewSession() {
               {phase === "question" ? (
                 <button
                   onClick={startRecording}
-                  className="flex items-center gap-2 rounded-xl bg-white/10 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/20"
+                  className="flex items-center gap-2 rounded-xl bg-muted px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent"
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
@@ -702,7 +702,7 @@ export default function InterviewSession() {
                 </button>
               ) : (
                 <button
-                  className="flex cursor-not-allowed items-center gap-2 rounded-xl bg-white/5 px-5 py-2.5 text-sm font-medium text-white/30"
+                  className="flex cursor-not-allowed items-center gap-2 rounded-xl bg-muted/50 px-5 py-2.5 text-sm font-medium text-muted-foreground"
                   disabled
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -719,8 +719,8 @@ export default function InterviewSession() {
                 onClick={toggleCam}
                 className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-colors ${
                   isCamOn
-                    ? "bg-white/10 text-white hover:bg-white/20"
-                    : "bg-white/5 text-red-400 hover:bg-white/10"
+                    ? "bg-muted text-foreground hover:bg-accent"
+                    : "bg-muted/50 text-destructive hover:bg-destructive/10"
                 }`}
               >
                 {isCamOn ? (
@@ -744,8 +744,8 @@ export default function InterviewSession() {
                   onClick={() => setIsChatOpen(!isChatOpen)}
                   className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-colors ${
                     isChatOpen
-                      ? "bg-[#3A86FF]/20 text-[#3A86FF] hover:bg-[#3A86FF]/30"
-                      : "bg-white/10 text-white hover:bg-white/20"
+                      ? "bg-primary/20 text-primary hover:bg-primary/30"
+                      : "bg-muted text-foreground hover:bg-accent"
                   }`}
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -756,12 +756,12 @@ export default function InterviewSession() {
               )}
 
               {/* Divider */}
-              <div className="h-8 w-px bg-white/10" />
+              <div className="h-8 w-px bg-border" />
 
               {/* Leave button */}
               <button
                 onClick={leaveMeeting}
-                className="flex items-center gap-2 rounded-xl bg-red-500/15 px-5 py-2.5 text-sm font-semibold text-red-400 transition-colors hover:bg-red-500/25 hover:text-red-300"
+                className="flex items-center gap-2 rounded-xl bg-destructive/10 px-5 py-2.5 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/20"
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
