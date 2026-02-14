@@ -7,7 +7,7 @@ import { useJobDescription } from "@/context/JobDescriptionContext";
 import { useResume } from "@/context/ResumeContext";
 
 export function InterviewControls() {
-  const { isInterviewActive, startInterview, exitInterview, setIntroductionPlayed } = useInterview();
+  const { isInterviewActive, startInterview, exitInterview } = useInterview();
   const { jobDescription } = useJobDescription();
   const { resumeFile } = useResume();
   const [loading, setLoading] = useState(false);
@@ -60,26 +60,13 @@ export function InterviewControls() {
         const url = URL.createObjectURL(blob);
 
         const audio = new Audio(url);
-        
-        // Start interview before audio plays
-        startInterview();
-        
-        // Wait for audio to finish, then mark introduction as played
-        audio.onended = () => {
-          setIntroductionPlayed();
-        };
-        
         await audio.play();
-        
-        // Fallback: mark as played after 30 seconds if audio doesn't end
-        setTimeout(() => {
-          setIntroductionPlayed();
-        }, 30000);
+
+        // Start interview after audio starts playing
+        startInterview();
       } else {
         // Start interview even if TTS fails
         startInterview();
-        // Mark introduction as played immediately if TTS fails
-        setIntroductionPlayed();
       }
     } catch (error) {
       console.error("Error starting interview:", error);
@@ -107,6 +94,9 @@ export function InterviewControls() {
       <Button onClick={handleStartInterview} disabled={loading}>
         {loading ? "Starting..." : "Start Interview"}
       </Button>
+      <div className="text-sm text-muted-foreground">
+        Start the interview to begin recording and responding.
+      </div>
     </div>
   );
 }

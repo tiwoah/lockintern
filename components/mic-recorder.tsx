@@ -100,30 +100,27 @@ export default function MicRecorder() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="flex items-center gap-3">
-        <Button 
-          onClick={start} 
-          disabled={isRecording}
-          size="lg"
-          variant={isRecording ? "secondary" : "default"}
-        >
-          {isRecording ? "Recording..." : "Start Recording"}
-        </Button>
-        <Button 
-          onClick={stop} 
-          disabled={!isRecording}
-          size="lg"
-          variant="destructive"
-        >
-          Stop
-        </Button>
-      </div>
-      
-      {isRecording && (
-        <div className="text-lg font-semibold text-primary">
-          Recording: {formatTime(seconds)}
-        </div>
+    <div>
+      <Button onClick={start} disabled={isRecording}>
+        Start
+      </Button>
+      <Button onClick={stop} disabled={!isRecording}>
+        Stop
+      </Button>
+
+      {isRecording && <div>Recording: {formatTime(seconds)}</div>}
+
+      {audioUrl && (
+        <>
+          <audio controls src={audioUrl} />
+          {fileSize !== null && <div>Size: {formatSize(fileSize)}</div>}
+          <a
+            href={audioUrl}
+            download={`recording.${getExtension(mimeType || "")}`}
+          >
+            <Button>Download</Button>
+          </a>
+        </>
       )}
     </div>
   );
