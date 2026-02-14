@@ -3,23 +3,27 @@
 import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { blobToWavFile } from "@/utils/blobToWav";
+import { useAudioStore } from "@/context/AudioContext";
 
 export default function MicRecorder() {
+  const {
+    url: audioUrl,
+    mimeType,
+    fileSize,
+    setAudio,
+    clearAudio,
+  } = useAudioStore();
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const [isRecording, setIsRecording] = useState(false);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [fileSize, setFileSize] = useState<number | null>(null);
-  const [mimeType, setMimeType] = useState<string>("audio/webm");
   const [seconds, setSeconds] = useState(0);
 
   async function start() {
-    if (audioUrl) URL.revokeObjectURL(audioUrl);
-    setAudioUrl(null);
-    setFileSize(null);
+    clearAudio(); // clears previous file + provider will revoke old URL
     setSeconds(0);
     chunksRef.current = [];
 
@@ -28,7 +32,6 @@ export default function MicRecorder() {
 
     const mr = new MediaRecorder(stream);
     mediaRecorderRef.current = mr;
-    setMimeType(mr.mimeType || "audio/webm");
 
     mr.ondataavailable = (e) => {
       if (e.data.size > 0) chunksRef.current.push(e.data);
@@ -40,11 +43,7 @@ export default function MicRecorder() {
       });
 
       const wavFile = await blobToWavFile(webmBlob, "recording.wav");
-
-      const url = URL.createObjectURL(wavFile);
-      setAudioUrl(url);
-      setFileSize(wavFile.size);
-      setMimeType(wavFile.type);
+      setAudio({ file: wavFile, seconds });
 
       streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
@@ -83,9 +82,7 @@ export default function MicRecorder() {
   function formatTime(totalSeconds: number) {
     const mins = Math.floor(totalSeconds / 60);
     const secs = totalSeconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs
-      .toString()
-      .padStart(2, "0")}`;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   }
 
   function getExtension(type: string) {
@@ -111,7 +108,10 @@ export default function MicRecorder() {
         <>
           <audio controls src={audioUrl} />
           {fileSize !== null && <div>Size: {formatSize(fileSize)}</div>}
-          <a href={audioUrl} download={`recording.${getExtension(mimeType)}`}>
+          <a
+            href={audioUrl}
+            download={`recording.${getExtension(mimeType || "")}`}
+          >
             <Button>Download</Button>
           </a>
         </>
