@@ -1,6 +1,47 @@
 # LockIntern
 
-## Inspiration
+Practice Interviews with Instant Feedback
+
+---
+
+## Setup
+
+1. **Clone the repository**
+
+```bash
+git clone https://github.com/tiwoah/lockintern.git
+cd lockintern
+```
+
+2. **Install dependencies**
+
+```bash
+npm install
+```
+
+3. **Create a `.env` file in the root directory**
+
+```env
+GEMINI_API_KEY=your_gemini_api_key
+ELEVENLABS_API_KEY=your_elevenlabs_api_key
+```
+
+4. **Run the development server**
+
+```bash
+npm run dev
+```
+
+The app will run locally at:
+
+```
+http://localhost:3000
+```
+
+Make sure your API keys are valid for Gemini and ElevenLabs.
+
+
+## The Problem
 
 As students, we weren't prepared for our first interviews. We didn’t know how to structure answers, explain our experience clearly, or tell what interviewers wanted. When we got ghosted, we had no feedback loop. So we built LockIntern to simulate real interviews and give instant, actionable feedback in a safe space.
 
@@ -17,18 +58,26 @@ LockIntern is an AI-powered interview simulation platform that provides a realis
 
 The platform uses Google Gemini's multimodal capabilities to understand audio responses, transcribe speech, and provide nuanced feedback that helps users identify exactly where they can improve.
 
+## What makes us unique
+
+* Real interview simulation in a meeting-style UI
+* Questions tailored to your background/resume and the exact job description
+* Spoken answers recorded, transcribed, and evaluated end-to-end
+* Clear scoring on Relevance, Clarity, Depth, and Confidence
+* Feedback is specific, actionable, and tracked over time
+
 ## How we built it
 
 **Frontend & Backend**
 
 * **Next.js 16**: One codebase for the UI and server-side API routes
-* **TypeScript**: Type safety
+* **TypeScript**: Type-safe
 * **Tailwind CSS**: UI Styling
 
 **AI & Speech**
 
 * **Google Gemini API (`gemini-2.5-flash`)**: Generates interview questions, parses PDF resumes with multimodal input, and evaluates answers with actionable feedback
-* **ElevenLabs (TTS Multilingual v2)**: Text-to-speech to read questions out loud
+* **ElevenLabs**: Text-to-speech to read questions out loud
 
 
 **Key Features:**
