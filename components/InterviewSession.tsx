@@ -77,6 +77,7 @@ export default function InterviewSession() {
 
   // ── TTS ──
   const audioRef = useRef<HTMLAudioElement>(null);
+  const [isTtsPlaying, setIsTtsPlaying] = useState(false);
 
   // ── Webcam ──
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -95,6 +96,23 @@ export default function InterviewSession() {
 
   const { lang } = useLanguage();
   const t = getTranslations(lang);
+
+  // Sync TTS playing state with audio element (for AI “speaking” animation)
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el) return;
+    const onPlay = () => setIsTtsPlaying(true);
+    const onPause = () => setIsTtsPlaying(false);
+    const onEnded = () => setIsTtsPlaying(false);
+    el.addEventListener("play", onPlay);
+    el.addEventListener("pause", onPause);
+    el.addEventListener("ended", onEnded);
+    return () => {
+      el.removeEventListener("play", onPlay);
+      el.removeEventListener("pause", onPause);
+      el.removeEventListener("ended", onEnded);
+    };
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -400,6 +418,14 @@ export default function InterviewSession() {
     setIsCamOn(false);
   }
 
+  // Resume TTS if the browser paused it (e.g. when toggling camera). Runs after a short delay.
+  const resumeTtsIfPaused = useCallback(() => {
+    const el = audioRef.current;
+    if (el?.src && el.paused && !el.ended) {
+      el.play().catch(() => {});
+    }
+  }, []);
+
   // ── Webcam toggle ──
   async function toggleCam() {
     if (isCamOn) {
@@ -407,16 +433,17 @@ export default function InterviewSession() {
       webcamStreamRef.current = null;
       if (videoRef.current) videoRef.current.srcObject = null;
       setIsCamOn(false);
+      setTimeout(resumeTtsIfPaused, 50);
     } else {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         webcamStreamRef.current = stream;
         setIsCamOn(true);
-        // Attach stream on next frame so TTS playback isn’t suspended by the same tick
         requestAnimationFrame(() => {
           if (videoRef.current && webcamStreamRef.current === stream) {
             videoRef.current.srcObject = stream;
           }
+          setTimeout(resumeTtsIfPaused, 50);
         });
       } catch {
         // camera not available
@@ -513,9 +540,7 @@ export default function InterviewSession() {
               {/* ── AI Interviewer Tile ── */}
               <div
                 className={`relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-2xl border border-border bg-card shadow-sm ${
-                  phase === "question" || phase === "generating"
-                    ? "ring-2 ring-primary/30"
-                    : ""
+                  isTtsPlaying ? "ring-2 ring-primary/30" : ""
                 }`}
               >
                 {/* AI name label */}
@@ -523,7 +548,7 @@ export default function InterviewSession() {
                   <span className="text-xs font-medium text-foreground">
                     {t.aiInterviewer}
                   </span>
-                  {(phase === "question" || phase === "generating") && (
+                  {isTtsPlaying && (
                     <span className="flex h-4 items-end gap-[2px]">
                       {[0, 1, 2, 3].map((i) => (
                         <span
@@ -545,7 +570,7 @@ export default function InterviewSession() {
 
                 {/* AI Avatar */}
                 <div className={`flex h-24 w-24 items-center justify-center rounded-full bg-primary text-4xl text-primary-foreground shadow-lg shadow-primary/20 sm:h-32 sm:w-32 sm:text-5xl ${
-                  phase === "question" || phase === "generating" ? "animate-float" : ""
+                  isTtsPlaying ? "animate-float" : ""
                 }`}>
                 </div>
 
