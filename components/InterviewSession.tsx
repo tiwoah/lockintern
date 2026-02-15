@@ -456,10 +456,10 @@ export default function InterviewSession() {
         <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-primary/5 via-background to-accent/30" />
       )}
 
-      {/* Theme + language — fixed on setup/done so they don’t overlap meeting bar */}
+      {/* Theme + language (language only when job form is open) — fixed so they don’t overlap meeting bar */}
       {!isMeetingView && (
         <div className="fixed top-3 right-3 z-[100] flex items-center gap-2">
-          <LanguageSwitcher />
+          {phase === "setup" && showForm && <LanguageSwitcher />}
           <ThemeSwitcher />
         </div>
       )}
