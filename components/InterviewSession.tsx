@@ -97,18 +97,19 @@ export default function InterviewSession() {
   const { lang } = useLanguage();
   const t = getTranslations(lang);
 
-  // Sync TTS playing state with audio element (for AI “speaking” animation)
+  // Sync TTS playing state with audio element (for AI “speaking” animation).
+  // Use "playing" (not "play") so the animation starts when audio is actually audible, not when play() is called.
   useEffect(() => {
     const el = audioRef.current;
     if (!el) return;
-    const onPlay = () => setIsTtsPlaying(true);
+    const onPlaying = () => setIsTtsPlaying(true);
     const onPause = () => setIsTtsPlaying(false);
     const onEnded = () => setIsTtsPlaying(false);
-    el.addEventListener("play", onPlay);
+    el.addEventListener("playing", onPlaying);
     el.addEventListener("pause", onPause);
     el.addEventListener("ended", onEnded);
     return () => {
-      el.removeEventListener("play", onPlay);
+      el.removeEventListener("playing", onPlaying);
       el.removeEventListener("pause", onPause);
       el.removeEventListener("ended", onEnded);
     };
