@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AudioProvider } from "@/context/AudioContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { LanguageProvider } from "@/context/LanguageContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,9 +41,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider>
-          <AudioProvider>
-            <div className="theme-transition min-h-screen">{children}</div>
-          </AudioProvider>
+          <LanguageProvider>
+            <AudioProvider>
+              <div className="theme-transition min-h-screen">{children}</div>
+            </AudioProvider>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

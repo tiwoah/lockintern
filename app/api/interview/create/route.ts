@@ -5,12 +5,13 @@ export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
   try {
-    const { topic, company, count, resumeText, jobDescription } = (await request.json()) as {
+    const { topic, company, count, resumeText, jobDescription, language } = (await request.json()) as {
       topic: string;
       company?: string;
       count?: number;
       resumeText?: string;
       jobDescription?: string;
+      language?: string;
     };
 
     if (!topic?.trim()) {
@@ -21,6 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     const questionCount = Math.min(Math.max(count ?? 3, 3), 5);
+    const isFrench = language === "fr";
 
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
@@ -37,6 +39,10 @@ export async function POST(request: NextRequest) {
       ? `\n\nJob Description:\n"""\n${jobDescription.trim()}\n"""`
       : "";
 
+    const langInstruction = isFrench
+      ? "\n\nIMPORTANT: Write ALL questions in French (Français)."
+      : "";
+
     const prompt = `You are an expert interviewer. Generate exactly ${questionCount} interview questions for the following topic or role:
 
 "${topic}"${companyLine}${resumeSection}${jdSection}
@@ -45,7 +51,7 @@ Rules:
 - Questions should be behavioral or situational (e.g. "Tell me about a time…", "How would you handle…").
 - Mix difficulty: include easy, medium, and hard questions.${resumeText?.trim() ? "\n- Reference specific experiences, skills, or projects from the candidate's resume when relevant." : ""}${jobDescription?.trim() ? "\n- Tailor questions to the responsibilities and requirements in the job description." : ""}
 - If a company is provided, align tone and priorities with that company's culture and interview style.
-- Return ONLY a valid JSON array of strings with no extra text, markdown, or code fences.
+- Return ONLY a valid JSON array of strings with no extra text, markdown, or code fences.${langInstruction}
 
 Example output:
 ["Question 1?", "Question 2?", "Question 3?"]`;

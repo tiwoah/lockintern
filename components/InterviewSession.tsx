@@ -18,6 +18,9 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/context/LanguageContext";
+import { getTranslations } from "@/lib/translations";
 
 type Phase =
   | "setup"
@@ -85,6 +88,9 @@ export default function InterviewSession() {
   // ── Chat panel toggle ──
   const [isChatOpen, setIsChatOpen] = useState(true);
 
+  const { lang } = useLanguage();
+  const t = getTranslations(lang);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -96,15 +102,16 @@ export default function InterviewSession() {
   }, []);
 
   // ── Speak helper (TTS) ──
-  const speak = useCallback(async (text: string) => {
+  const speak = useCallback(async (text: string, languageOverride?: "en" | "fr") => {
     const trimmed = text.trim();
     if (!trimmed) return;
+    const ttsLang = languageOverride ?? lang;
 
     try {
       const res = await fetch("/api/tts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: trimmed }),
+        body: JSON.stringify({ text: trimmed, language: ttsLang }),
       });
       if (!res.ok) return;
 
@@ -131,7 +138,7 @@ export default function InterviewSession() {
     } catch {
       // TTS failure is non-critical
     }
-  }, []);
+  }, [lang]);
 
   // ── Stop any playing TTS audio ──
   const stopSpeaking = useCallback(() => {
@@ -168,14 +175,14 @@ export default function InterviewSession() {
           error?: string;
         };
         if (!parseRes.ok || !parseData.text) {
-          setError(parseData.error ?? "Failed to parse resume.");
+          setError(parseData.error ?? t.failedToParseResume);
           setParsingResume(false);
           return;
         }
         currentResumeText = parseData.text;
         setResumeText(currentResumeText);
       } catch {
-        setError("Network error parsing resume.");
+        setError(t.networkErrorParsing);
         setParsingResume(false);
         return;
       }
@@ -194,6 +201,7 @@ export default function InterviewSession() {
           count: questionCount,
           resumeText: currentResumeText || undefined,
           jobDescription: jobDescription.trim() || undefined,
+          language: lang,
         }),
       });
 
@@ -203,7 +211,7 @@ export default function InterviewSession() {
       };
 
       if (!res.ok || !data.questions) {
-        setError(data.error ?? "Failed to generate questions.");
+        setError(data.error ?? t.failedToGenerateQuestions);
         setPhase("setup");
         return;
       }
@@ -222,7 +230,7 @@ export default function InterviewSession() {
       // Read the first question aloud
       void speak(data.questions[0]);
     } catch {
-      setError("Network error generating questions.");
+      setError(t.networkErrorGenerating);
       setPhase("setup");
     }
   }
@@ -239,7 +247,7 @@ export default function InterviewSession() {
     const totalQuestionsAtStart = questions.length;
 
     if (!questionTextAtStart.trim()) {
-      setError("No question to answer.");
+      setError(t.noQuestionToAnswer);
       return;
     }
 
@@ -296,7 +304,7 @@ export default function InterviewSession() {
     setError("");
 
     if (!questionText.trim()) {
-      setError("Missing question.");
+      setError(t.missingQuestion);
       setPhase("question");
       return;
     }
@@ -306,6 +314,7 @@ export default function InterviewSession() {
       form.append("question", questionText);
       form.append("questionIndex", String(forQuestionIndex + 1));
       form.append("totalQuestions", String(totalQuestions));
+      form.append("language", lang);
       form.append("audio", audioFile);
       if (resumeText) form.append("resumeText", resumeText);
       if (jobDescription.trim())
@@ -323,7 +332,7 @@ export default function InterviewSession() {
       };
 
       if (!res.ok || !data.feedback) {
-        setError(data.error ?? "Failed to evaluate answer.");
+        setError(data.error ?? t.failedToEvaluate);
         setPhase("question");
         return;
       }
@@ -338,7 +347,7 @@ export default function InterviewSession() {
       // Speak the overall feedback
       void speak(data.feedback.overall);
     } catch {
-      setError("Network error submitting answer.");
+      setError(t.networkErrorSubmitting);
       setPhase("question");
     }
   }
@@ -447,9 +456,10 @@ export default function InterviewSession() {
         <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-primary/5 via-background to-accent/30" />
       )}
 
-      {/* Theme switcher — fixed on setup/done so it doesn’t overlap meeting bar */}
+      {/* Theme + language — fixed on setup/done so they don’t overlap meeting bar */}
       {!isMeetingView && (
-        <div className="fixed top-3 right-3 z-[100]">
+        <div className="fixed top-3 right-3 z-[100] flex items-center gap-2">
+          <LanguageSwitcher />
           <ThemeSwitcher />
         </div>
       )}
@@ -470,10 +480,11 @@ export default function InterviewSession() {
               </span>
               <span className="hidden text-xs text-muted-foreground sm:inline">|</span>
               <span className="hidden text-xs text-muted-foreground sm:inline">
-                {topic || "Interview"} — Q{currentIndex + 1}/{questions.length || "…"}
+                {topic || t.interview} — Q{currentIndex + 1}/{questions.length || "…"}
               </span>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <LanguageSwitcher className="h-8" />
               <ThemeSwitcher className="h-8 w-8" />
               <span className="font-mono text-xs tabular-nums text-muted-foreground">
                 {formatTime(meetingSeconds)}
@@ -502,7 +513,7 @@ export default function InterviewSession() {
                 {/* AI name label */}
                 <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-md bg-muted/90 px-2.5 py-1 backdrop-blur-sm">
                   <span className="text-xs font-medium text-foreground">
-                    AI Interviewer
+                    {t.aiInterviewer}
                   </span>
                   {(phase === "question" || phase === "generating") && (
                     <span className="flex h-4 items-end gap-[2px]">
@@ -543,7 +554,7 @@ export default function InterviewSession() {
                 {phase === "generating" && (
                   <div className="mt-6 text-center">
                     <div className="mx-auto mb-3 h-6 w-6 animate-spin rounded-full border-2 border-muted border-t-primary" />
-                    <p className="text-sm text-muted-foreground">Connecting…</p>
+                    <p className="text-sm text-muted-foreground">{t.connecting}</p>
                   </div>
                 )}
               </div>
@@ -552,7 +563,7 @@ export default function InterviewSession() {
               <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
                 {/* User name label */}
                 <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-md bg-muted/90 px-2.5 py-1 backdrop-blur-sm">
-                  <span className="text-xs font-medium text-foreground">You</span>
+                  <span className="text-xs font-medium text-foreground">{t.you}</span>
                   {phase === "recording" && (
                     <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
                   )}
@@ -589,7 +600,7 @@ export default function InterviewSession() {
                 {phase === "submitting" && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
                     <div className="mb-3 h-8 w-8 animate-spin rounded-full border-[3px] border-muted border-t-primary" />
-                    <p className="text-sm font-medium text-foreground">Evaluating…</p>
+                    <p className="text-sm font-medium text-foreground">{t.evaluating}</p>
                   </div>
                 )}
               </div>
@@ -604,8 +615,8 @@ export default function InterviewSession() {
               {/* Header */}
               <div className="flex items-center justify-between border-b border-border bg-card px-6 py-4">
                 <div>
-                  <h2 className="text-lg font-bold text-foreground">Feedback</h2>
-                  <p className="text-xs text-muted-foreground">Question {currentIndex + 1} of {questions.length}</p>
+                  <h2 className="text-lg font-bold text-foreground">{t.feedback}</h2>
+                  <p className="text-xs text-muted-foreground">{t.questionOf(currentIndex + 1, questions.length)}</p>
                 </div>
                 <button
                   onClick={() => setIsChatOpen(false)}
@@ -621,7 +632,7 @@ export default function InterviewSession() {
                   <div className="mx-auto mb-4 max-w-3xl rounded-2xl bg-muted/50 border border-border p-5">
                     <div className="mb-2 flex items-center gap-2">
                       <Mic className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-bold text-foreground">Your Answer (Transcript)</span>
+                      <span className="text-sm font-bold text-foreground">{t.yourAnswerTranscript}</span>
                     </div>
                     <p className="text-sm leading-relaxed text-muted-foreground italic">
                       &ldquo;{answers[answers.length - 1].feedback.transcript}&rdquo;
@@ -675,10 +686,10 @@ export default function InterviewSession() {
                     className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                   >
                     {currentIndex + 1 < questions.length ? (
-                      <>Next Question →</>
+                      <>{t.nextQuestion}</>
                     ) : (
                       <>
-                        <Flag className="h-4 w-4" /> Finish Interview
+                        <Flag className="h-4 w-4" /> {t.finishInterview}
                       </>
                     )}
                   </button>
@@ -719,7 +730,7 @@ export default function InterviewSession() {
                     <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
                     <line x1="12" x2="12" y1="19" y2="22" />
                   </svg>
-                  <span>Start Recording</span>
+                  <span>{t.startRecording}</span>
                 </button>
               ) : phase === "recording" ? (
                 <button
@@ -729,7 +740,7 @@ export default function InterviewSession() {
                   <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                     <rect x="6" y="6" width="12" height="12" rx="2" />
                   </svg>
-                  <span>Stop Recording</span>
+                  <span>{t.stopRecording}</span>
                 </button>
               ) : (
                 <button
@@ -741,7 +752,7 @@ export default function InterviewSession() {
                     <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
                     <line x1="12" x2="12" y1="19" y2="22" />
                   </svg>
-                  <span>Mic</span>
+                  <span>{t.mic}</span>
                 </button>
               )}
 
@@ -766,7 +777,7 @@ export default function InterviewSession() {
                     <line x1="2" x2="22" y1="2" y2="22" />
                   </svg>
                 )}
-                <span>{isCamOn ? "Camera On" : "Camera Off"}</span>
+                <span>{isCamOn ? t.cameraOn : t.cameraOff}</span>
               </button>
 
               {/* Chat toggle (feedback only) */}
@@ -782,7 +793,7 @@ export default function InterviewSession() {
                   <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z" />
                   </svg>
-                  <span>Feedback</span>
+                  <span>{t.feedback}</span>
                 </button>
               )}
 
@@ -799,7 +810,7 @@ export default function InterviewSession() {
                   <polyline points="16 17 21 12 16 7" />
                   <line x1="21" x2="9" y1="12" y2="12" />
                 </svg>
-                <span>Leave</span>
+                <span>{t.leave}</span>
               </button>
             </div>
           </div>
@@ -820,7 +831,7 @@ export default function InterviewSession() {
               <button
                 type="button"
                 className="block cursor-pointer border-none bg-transparent p-0 font-inherit text-inherit"
-                aria-label="Start interview setup"
+                aria-label={t.backToStart}
                 onClick={() => setShowForm(true)}
               >
                 <span className="thought-bubble">
@@ -842,15 +853,14 @@ export default function InterviewSession() {
                     type="button"
                     className="mb-2 inline-block cursor-pointer border-none bg-transparent p-0"
                     onClick={() => setShowForm(false)}
-                    aria-label="Back to start"
+                    aria-label={t.backToStart}
                   >
                     <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
                       Lock<span className="text-primary">Intern</span>
                     </h1>
                   </button>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Practice interviews with AI. Upload your resume, paste a job
-                    description, and get tailored questions &amp; feedback.
+                    {t.tagline}
                   </p>
                 </header>
 
@@ -869,10 +879,10 @@ export default function InterviewSession() {
                       <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-sm text-primary">
                         <ClipboardList className="h-4 w-4" />
                       </span>
-                      Interview Setup
+                      {t.interviewSetup}
                     </CardTitle>
                     <p className="text-xs text-muted-foreground">
-                      Tell us about the role and optionally upload your resume.
+                      {t.setupSubtitle}
                     </p>
                   </CardHeader>
 
@@ -880,12 +890,12 @@ export default function InterviewSession() {
                     {/* Role / Topic */}
                     <div className="space-y-1">
                       <label className="text-xs font-semibold">
-                        Role / Topic <span className="text-destructive">*</span>
+                        {t.roleTopic} <span className="text-destructive">*</span>
                       </label>
                       <Input
                         value={topic}
                         onChange={(e) => setTopic(e.target.value)}
-                        placeholder="e.g. Frontend React Developer, Product Manager…"
+                        placeholder={t.rolePlaceholder}
                         className="h-9"
                       />
                     </div>
@@ -893,15 +903,15 @@ export default function InterviewSession() {
                     {/* Company */}
                     <div className="space-y-1">
                       <label className="text-xs font-semibold">
-                        Company{" "}
+                        {t.company}{" "}
                         <span className="font-normal text-muted-foreground">
-                          (optional)
+                          {t.optional}
                         </span>
                       </label>
                       <Input
                         value={company}
                         onChange={(e) => setCompany(e.target.value)}
-                        placeholder="e.g. Stripe, Netflix, OpenAI…"
+                        placeholder={t.companyPlaceholder}
                         className="h-9"
                       />
                     </div>
@@ -909,15 +919,15 @@ export default function InterviewSession() {
                     {/* Job Description */}
                     <div className="space-y-1">
                       <label className="text-xs font-semibold">
-                        Job Description{" "}
+                        {t.jobDescription}{" "}
                         <span className="font-normal text-muted-foreground">
-                          (optional)
+                          {t.optional}
                         </span>
                       </label>
                       <Textarea
                         value={jobDescription}
                         onChange={(e) => setJobDescription(e.target.value)}
-                        placeholder="Paste the full job description here…"
+                        placeholder={t.jobDescriptionPlaceholder}
                         rows={3}
                         className="resize-none text-sm"
                       />
@@ -928,9 +938,9 @@ export default function InterviewSession() {
                     {/* Resume Upload */}
                     <div className="space-y-1">
                       <label className="text-xs font-semibold">
-                        Resume{" "}
+                        {t.resume}{" "}
                         <span className="font-normal text-muted-foreground">
-                          (optional, PDF)
+                          {t.optionalPdf}
                         </span>
                       </label>
                       <div className="relative">
@@ -948,17 +958,16 @@ export default function InterviewSession() {
                                   {resumeFile.name}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  {(resumeFile.size / 1024).toFixed(0)} KB — Click
-                                  to change
+                                  {(resumeFile.size / 1024).toFixed(0)} KB — {t.clickToChange}
                                 </p>
                               </>
                             ) : (
                               <>
                                 <p className="text-sm font-medium text-muted-foreground">
-                                  Click to upload your resume
+                                  {t.clickToUpload}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  PDF format, up to 10 MB
+                                  {t.pdfUpTo10}
                                 </p>
                               </>
                             )}
@@ -983,7 +992,7 @@ export default function InterviewSession() {
                     {/* Question count */}
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-semibold">
-                        Number of Questions
+                        {t.numberOfQuestions}
                       </label>
                       <div className="flex items-center gap-1">
                         {[3, 4, 5].map((n) => (
@@ -1012,11 +1021,11 @@ export default function InterviewSession() {
                       {parsingResume ? (
                         <span className="flex items-center gap-2">
                           <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                          Parsing resume…
+                          {t.parsingResume}
                         </span>
                       ) : (
                         <span className="flex items-center gap-2">
-                          Join Interview
+                          {t.joinInterview}
                         </span>
                       )}
                     </Button>
@@ -1037,12 +1046,9 @@ export default function InterviewSession() {
           <Card className="overflow-hidden border-0 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-xl shadow-primary/20">
             <CardContent className="flex flex-col items-center justify-center py-10 text-center">
               <PartyPopper className="mx-auto mb-3 h-12 w-12 shrink-0" />
-              <h2 className="text-2xl font-bold">Interview Complete!</h2>
+              <h2 className="text-2xl font-bold">{t.interviewComplete}</h2>
               <p className="mt-2 text-primary-foreground/80">
-                You answered{" "}
-                <span className="font-bold">{answers.length}</span> of{" "}
-                <span className="font-bold">{questions.length}</span>{" "}
-                questions. Here&apos;s your feedback:
+                {t.youAnswered(answers.length, questions.length)}
               </p>
             </CardContent>
           </Card>
@@ -1064,7 +1070,7 @@ export default function InterviewSession() {
                   <div className="rounded-xl bg-muted/40 p-4">
                     <div className="mb-1.5 flex items-center gap-2">
                       <Mic className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-bold">Your Answer (Transcript)</span>
+                      <span className="text-sm font-bold">{t.yourAnswerTranscript}</span>
                     </div>
                     <p className="text-sm leading-relaxed text-muted-foreground italic">
                       &ldquo;{a.feedback.transcript}&rdquo;
@@ -1118,7 +1124,7 @@ export default function InterviewSession() {
             className="h-12 w-full gap-2 text-base font-semibold shadow-lg shadow-primary/20"
           >
             <RotateCcw className="h-5 w-5" />
-            Start New Interview
+            {t.startNewInterview}
           </Button>
         </div>
       )}

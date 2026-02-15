@@ -13,6 +13,7 @@ export async function POST(req: Request) {
     const resumeText = String(form.get("resumeText") ?? "");
     const jobDescription = String(form.get("jobDescription") ?? "");
     const company = String(form.get("company") ?? "");
+    const language = String(form.get("language") ?? "en");
     const audio = form.get("audio");
 
     if (!question.trim()) {       
@@ -47,12 +48,17 @@ export async function POST(req: Request) {
       ? `\n\nJob Description:\n"""\n${jobDescription.trim()}\n"""`
       : "";
 
+    const isFrench = language === "fr";
+    const langInstruction = isFrench
+      ? "\n\nIMPORTANT: Respond with ALL JSON content in French (Français): category names (Relevance → Pertinence, Clarity → Clarté, Depth → Profondeur, Confidence → Confiance), feedback text, transcript, and overall summary must be in French."
+      : "";
+
     const prompt = `You are a strict, no-nonsense expert interview coach evaluating a candidate's spoken answer.
 
 Interview question (${questionIndex} of ${totalQuestions}):
 "${question}"${companySection}${resumeSection}${jdSection}
 
-The candidate's audio response is attached. Listen carefully and evaluate honestly.
+The candidate's audio response is attached. Listen carefully and evaluate honestly.${langInstruction}
 
 CRITICAL RULES:
 - If the audio is silent, empty, contains only noise/breathing, or the candidate does not provide a meaningful spoken answer, give 1/5 for every category.
@@ -60,16 +66,16 @@ CRITICAL RULES:
 - Only give 4–5/5 for answers that are detailed, specific, and directly address the question.
 - Be honest and critical. If a target company is provided, evaluate whether the answer fits that company's culture and expectations.
 
-You MUST respond with ONLY valid JSON (no markdown, no code fences, no extra text). Use this exact schema:
+You MUST respond with ONLY valid JSON (no markdown, no code fences, no extra text). Use this exact schema (use the category names and write all string values in the requested language):
 {
-  "transcript": "<Full verbatim transcript of exactly what the candidate said, word for word including filler words like um, uh, like. If silent, write '[No speech detected]'>",
+  "transcript": "<Full verbatim transcript of exactly what the candidate said, word for word including filler words. If silent, write '[No speech detected]' or '[Aucune parole détectée]' for French>",
   "categories": [
-    { "name": "Relevance", "score": <1-5>, "feedback": "<2-3 sentences: how well the answer addresses the question, what was missed or off-topic>" },
-    { "name": "Clarity", "score": <1-5>, "feedback": "<2-3 sentences: how clearly the answer was structured and communicated, any issues with rambling or incoherence>" },
-    { "name": "Depth", "score": <1-5>, "feedback": "<2-3 sentences: whether specific examples, metrics, or details were provided, what could be expanded>" },
-    { "name": "Confidence", "score": <1-5>, "feedback": "<2-3 sentences: tone, pacing, filler words, hesitation, and overall delivery quality>" }
+    { "name": "${isFrench ? "Pertinence" : "Relevance"}", "score": <1-5>, "feedback": "<2-3 sentences>" },
+    { "name": "${isFrench ? "Clarté" : "Clarity"}", "score": <1-5>, "feedback": "<2-3 sentences>" },
+    { "name": "${isFrench ? "Profondeur" : "Depth"}", "score": <1-5>, "feedback": "<2-3 sentences>" },
+    { "name": "${isFrench ? "Confiance" : "Confidence"}", "score": <1-5>, "feedback": "<2-3 sentences>" }
   ],
-  "overall": "<3-5 sentences: summarize key strengths and weaknesses, give specific actionable advice on what to improve and how, suggest what an ideal answer would include>"
+  "overall": "<3-5 sentences: summarize key strengths and weaknesses, give specific actionable advice>"
 }
 
 Respond with ONLY the JSON object.`;
