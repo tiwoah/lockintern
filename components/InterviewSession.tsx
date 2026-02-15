@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { blobToWavFile } from "@/utils/blobToWav";
 import {
   AlertTriangle,
+  ChevronLeft,
   ClipboardList,
   FileText,
   Flag,
@@ -496,12 +497,29 @@ export default function InterviewSession() {
         <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-primary/5 via-background to-accent/30" />
       )}
 
-      {/* Theme + language (language only when job form is open) — fixed so they don’t overlap meeting bar */}
+      {/* Back (setup form only) + Theme + language — fixed so they don’t overlap meeting bar */}
       {!isMeetingView && (
-        <div className="fixed top-3 right-3 z-[100] flex items-center gap-2">
-          {phase === "setup" && showForm && <LanguageSwitcher />}
-          <ThemeSwitcher />
-        </div>
+        <>
+          {phase === "setup" && showForm && (
+            <div className="fixed top-3 left-3 z-[100]">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowForm(false)}
+                className="gap-1.5 text-muted-foreground hover:text-foreground"
+                aria-label={t.backToStart}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span className="text-sm font-medium">{lang === "fr" ? "Retour" : "Back"}</span>
+              </Button>
+            </div>
+          )}
+          <div className="fixed top-3 right-3 z-[100] flex items-center gap-2">
+            {phase === "setup" && showForm && <LanguageSwitcher />}
+            <ThemeSwitcher />
+          </div>
+        </>
       )}
 
       {/* Hidden audio element for TTS playback */}
