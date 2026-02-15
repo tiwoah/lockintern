@@ -17,6 +17,7 @@ import {
   RotateCcw,
   User as UserIcon,
 } from "lucide-react";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 
 type Phase =
   | "setup"
@@ -446,6 +447,13 @@ export default function InterviewSession() {
         <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-primary/5 via-background to-accent/30" />
       )}
 
+      {/* Theme switcher — fixed on setup/done so it doesn’t overlap meeting bar */}
+      {!isMeetingView && (
+        <div className="fixed top-3 right-3 z-[100]">
+          <ThemeSwitcher />
+        </div>
+      )}
+
       {/* Hidden audio element for TTS playback */}
       <audio ref={audioRef} className="hidden" />
 
@@ -466,6 +474,7 @@ export default function InterviewSession() {
               </span>
             </div>
             <div className="flex items-center gap-3">
+              <ThemeSwitcher className="h-8 w-8" />
               <span className="font-mono text-xs tabular-nums text-muted-foreground">
                 {formatTime(meetingSeconds)}
               </span>
@@ -801,7 +810,7 @@ export default function InterviewSession() {
           SETUP — Hackathon homepage (bubble → split)
          ════════════════════════════════════════════ */}
       {phase === "setup" && (
-        <div className="font-gsans flex min-h-screen flex-col bg-white">
+        <div className="font-gsans flex min-h-screen flex-col bg-background">
           
 
           {/* Viewport: bubble and form stages */}

@@ -82,47 +82,79 @@
   --sidebar-ring: oklch(0.6 0.19 260);
 }
 
+/* Dark theme — interview screen palette (#1a1a2e navy, #3A86FF primary) */
 .dark {
-  --background: oklch(0.13 0.02 255);
-  --foreground: oklch(0.95 0.01 255);
-  --card: oklch(0.18 0.02 255);
-  --card-foreground: oklch(0.95 0.01 255);
-  --popover: oklch(0.18 0.02 255);
-  --popover-foreground: oklch(0.95 0.01 255);
-  --primary: oklch(0.65 0.2 260);
-  --primary-foreground: oklch(0.13 0.02 255);
-  --secondary: oklch(0.22 0.03 255);
-  --secondary-foreground: oklch(0.95 0.01 255);
-  --muted: oklch(0.22 0.03 255);
-  --muted-foreground: oklch(0.65 0.02 255);
-  --accent: oklch(0.25 0.05 255);
-  --accent-foreground: oklch(0.95 0.01 255);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.6 0.19 260);
-  --chart-1: oklch(0.6 0.19 260);
-  --chart-2: oklch(0.65 0.17 162);
-  --chart-3: oklch(0.7 0.18 70);
-  --chart-4: oklch(0.6 0.24 304);
-  --chart-5: oklch(0.6 0.22 16);
-  --sidebar: oklch(0.16 0.02 255);
-  --sidebar-foreground: oklch(0.95 0.01 255);
-  --sidebar-primary: oklch(0.65 0.2 260);
-  --sidebar-primary-foreground: oklch(0.95 0.01 255);
-  --sidebar-accent: oklch(0.22 0.04 255);
-  --sidebar-accent-foreground: oklch(0.95 0.01 255);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.6 0.19 260);
+  --background: #1a1a2e;
+  --foreground: #f0f0f5;
+  --card: #252547;
+  --card-foreground: #f0f0f5;
+  --popover: #252547;
+  --popover-foreground: #f0f0f5;
+  --primary: #3A86FF;
+  --primary-foreground: #fff;
+  --secondary: #2a2a4a;
+  --secondary-foreground: #e0e0ea;
+  --muted: #2a2a4a;
+  --muted-foreground: #a0a0b8;
+  --accent: #2a2a4a;
+  --accent-foreground: #f0f0f5;
+  --destructive: #ef4444;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.1);
+  --ring: #3A86FF;
+  --chart-1: #3A86FF;
+  --chart-2: #22c55e;
+  --chart-3: #eab308;
+  --chart-4: #f97316;
+  --chart-5: #ef4444;
+  --sidebar: #1a1a2e;
+  --sidebar-foreground: #f0f0f5;
+  --sidebar-primary: #3A86FF;
+  --sidebar-primary-foreground: #fff;
+  --sidebar-accent: #2a2a4a;
+  --sidebar-accent-foreground: #f0f0f5;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #3A86FF;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
   body {
     @apply bg-background text-foreground;
+    transition: background-color 0.15s ease, color 0.15s ease;
   }
+}
+
+/* Animate theme switch — elements using semantic colors transition smoothly */
+.theme-transition,
+.theme-transition * {
+  transition:
+    background-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+/* Keep responsive feel for interactive elements (theme colors still animate) */
+.theme-transition button,
+.theme-transition a,
+.theme-transition input,
+.theme-transition textarea,
+.theme-transition select {
+  transition:
+    background-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 
 /* Smooth global transitions */
@@ -298,6 +330,13 @@
   letter-spacing: 0.02em;
 }
 
+.dark .bubble-shape {
+  background: var(--primary);
+}
+.dark .bubble-dot {
+  background: var(--primary);
+}
+
 /* Split layout */
 .split-layout {
   display: flex;
@@ -325,6 +364,14 @@
 .split-logo:hover {
   background: rgba(0, 0, 0, 0.05);
   color: #515151;
+}
+
+.dark .split-logo {
+  color: var(--foreground);
+}
+.dark .split-logo:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--foreground);
 }
 
 .split-logo:active {
