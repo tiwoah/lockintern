@@ -78,6 +78,7 @@ export default function InterviewSession() {
   // ── TTS ──
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isTtsPlaying, setIsTtsPlaying] = useState(false);
+  const isCurrentPlaybackFeedbackRef = useRef(false);
 
   // ── Webcam ──
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -126,7 +127,8 @@ export default function InterviewSession() {
   }, []);
 
   // ── Speak helper (TTS) ──
-  const speak = useCallback(async (text: string, languageOverride?: "en" | "fr") => {
+  // isFeedback: true = detailed feedback (respects mute button), false = interviewer question (never muted)
+  const speak = useCallback(async (text: string, languageOverride?: "en" | "fr", isFeedback = false) => {
     const trimmed = text.trim();
     if (!trimmed) return;
     const ttsLang = languageOverride ?? lang;
@@ -153,8 +155,9 @@ export default function InterviewSession() {
         /* ignore */
       }
 
+      isCurrentPlaybackFeedbackRef.current = isFeedback;
       el.src = url;
-      el.muted = isFeedbackMuted;
+      el.muted = isFeedback ? isFeedbackMuted : false;
       try {
         await el.play();
       } catch {
@@ -370,7 +373,7 @@ export default function InterviewSession() {
       setIsChatOpen(true); // ensure feedback panel is visible
 
       // Speak the overall feedback
-      void speak(data.feedback.overall);
+      void speak(data.feedback.overall, undefined, true);
     } catch {
       setError(t.networkErrorSubmitting);
       setPhase("question");
@@ -707,28 +710,33 @@ export default function InterviewSession() {
                   ))}
                 </div>
                 {answers[answers.length - 1].feedback.overall && (
-                  <div className="relative mx-auto mt-4 max-w-3xl rounded-2xl bg-primary/10 border border-primary/20 p-4 pl-12 text-sm leading-relaxed text-foreground">
-                    <p>{answers[answers.length - 1].feedback.overall}</p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const el = audioRef.current;
-                        if (el) {
+                  <div className="mx-auto mt-4 max-w-3xl rounded-2xl bg-primary/10 border border-primary/20 p-4 text-sm leading-relaxed text-foreground">
+                    <div className="mb-2 flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
                           const next = !isFeedbackMuted;
-                          el.muted = next;
                           setIsFeedbackMuted(next);
-                        }
-                      }}
-                      className="absolute top-3 left-3 flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-primary/20 hover:text-foreground"
-                      aria-label={isFeedbackMuted ? t.unmuteFeedback : t.muteFeedback}
-                      title={isFeedbackMuted ? t.unmuteFeedback : t.muteFeedback}
-                    >
-                      {isFeedbackMuted ? (
-                        <VolumeX className="h-4 w-4" />
-                      ) : (
-                        <Volume2 className="h-4 w-4" />
-                      )}
-                    </button>
+                          const el = audioRef.current;
+                          if (el && isCurrentPlaybackFeedbackRef.current) {
+                            el.muted = next;
+                          }
+                        }}
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-primary/20 hover:text-foreground"
+                        aria-label={isFeedbackMuted ? t.unmuteFeedback : t.muteFeedback}
+                        title={isFeedbackMuted ? t.unmuteFeedback : t.muteFeedback}
+                      >
+                        {isFeedbackMuted ? (
+                          <VolumeX className="h-4 w-4" />
+                        ) : (
+                          <Volume2 className="h-4 w-4" />
+                        )}
+                      </button>
+                      <p className="text-sm font-bold text-foreground">
+                        {t.overallFeedback}
+                      </p>
+                    </div>
+                    <p>{answers[answers.length - 1].feedback.overall}</p>
                   </div>
                 )}
               </div>
@@ -1164,6 +1172,9 @@ export default function InterviewSession() {
                 ))}
                 {a.feedback.overall && (
                   <div className="rounded-xl bg-primary/5 p-3 text-xs leading-relaxed text-muted-foreground">
+                    <p className="mb-1.5 text-sm font-bold text-foreground">
+                      {t.overallFeedback}
+                    </p>
                     {a.feedback.overall}
                   </div>
                 )}

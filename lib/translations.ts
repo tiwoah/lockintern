@@ -19,6 +19,7 @@ export const translations = {
     connecting: "Connecting…",
     evaluating: "Evaluating…",
     yourAnswerTranscript: "Your Answer (Transcript)",
+    overallFeedback: "Detailed Feedback",
     muteFeedback: "Mute",
     unmuteFeedback: "Unmute",
 
@@ -76,6 +77,7 @@ export const translations = {
     connecting: "Connexion…",
     evaluating: "Évaluation…",
     yourAnswerTranscript: "Votre réponse (transcription)",
+    overallFeedback: "Commentaire détaillé",
     muteFeedback: "Couper le son",
     unmuteFeedback: "Rétablir le son",
 
