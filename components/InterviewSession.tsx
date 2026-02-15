@@ -483,8 +483,7 @@ export default function InterviewSession() {
                 {topic || t.interview} — Q{currentIndex + 1}/{questions.length || "…"}
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <LanguageSwitcher className="h-8" />
+            <div className="flex items-center gap-3">
               <ThemeSwitcher className="h-8 w-8" />
               <span className="font-mono text-xs tabular-nums text-muted-foreground">
                 {formatTime(meetingSeconds)}
