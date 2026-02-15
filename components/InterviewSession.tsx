@@ -16,6 +16,8 @@ import {
   PartyPopper,
   RotateCcw,
   User as UserIcon,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -88,6 +90,9 @@ export default function InterviewSession() {
   // ── Chat panel toggle ──
   const [isChatOpen, setIsChatOpen] = useState(true);
 
+  // ── Feedback TTS mute ──
+  const [isFeedbackMuted, setIsFeedbackMuted] = useState(false);
+
   const { lang } = useLanguage();
   const t = getTranslations(lang);
 
@@ -130,6 +135,7 @@ export default function InterviewSession() {
       }
 
       el.src = url;
+      el.muted = isFeedbackMuted;
       try {
         await el.play();
       } catch {
@@ -138,7 +144,7 @@ export default function InterviewSession() {
     } catch {
       // TTS failure is non-critical
     }
-  }, [lang]);
+  }, [lang, isFeedbackMuted]);
 
   // ── Stop any playing TTS audio ──
   const stopSpeaking = useCallback(() => {
@@ -675,8 +681,28 @@ export default function InterviewSession() {
                   ))}
                 </div>
                 {answers[answers.length - 1].feedback.overall && (
-                  <div className="mx-auto mt-4 max-w-3xl rounded-2xl bg-primary/10 border border-primary/20 p-4 text-sm leading-relaxed text-foreground">
-                    {answers[answers.length - 1].feedback.overall}
+                  <div className="relative mx-auto mt-4 max-w-3xl rounded-2xl bg-primary/10 border border-primary/20 p-4 pl-12 text-sm leading-relaxed text-foreground">
+                    <p>{answers[answers.length - 1].feedback.overall}</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const el = audioRef.current;
+                        if (el) {
+                          const next = !isFeedbackMuted;
+                          el.muted = next;
+                          setIsFeedbackMuted(next);
+                        }
+                      }}
+                      className="absolute top-3 left-3 flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-primary/20 hover:text-foreground"
+                      aria-label={isFeedbackMuted ? t.unmuteFeedback : t.muteFeedback}
+                      title={isFeedbackMuted ? t.unmuteFeedback : t.muteFeedback}
+                    >
+                      {isFeedbackMuted ? (
+                        <VolumeX className="h-4 w-4" />
+                      ) : (
+                        <Volume2 className="h-4 w-4" />
+                      )}
+                    </button>
                   </div>
                 )}
               </div>

@@ -19,6 +19,8 @@ export const translations = {
     connecting: "Connecting…",
     evaluating: "Evaluating…",
     yourAnswerTranscript: "Your Answer (Transcript)",
+    muteFeedback: "Mute",
+    unmuteFeedback: "Unmute",
 
     // Setup / home
     tagline: "Practice interviews with AI. Upload your resume, paste a job description, and get tailored questions & feedback.",
@@ -74,6 +76,8 @@ export const translations = {
     connecting: "Connexion…",
     evaluating: "Évaluation…",
     yourAnswerTranscript: "Votre réponse (transcription)",
+    muteFeedback: "Couper le son",
+    unmuteFeedback: "Rétablir le son",
 
     tagline: "Entraînez-vous aux entretiens avec l'IA. Uploadez votre CV, collez une offre, et recevez des questions et retours personnalisés.",
     backToStart: "Retour au début",
