@@ -405,10 +405,13 @@ export default function InterviewSession() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         webcamStreamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
         setIsCamOn(true);
+        // Attach stream on next frame so TTS playback isn’t suspended by the same tick
+        requestAnimationFrame(() => {
+          if (videoRef.current && webcamStreamRef.current === stream) {
+            videoRef.current.srcObject = stream;
+          }
+        });
       } catch {
         // camera not available
       }
